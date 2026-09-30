@@ -22,8 +22,8 @@
 
     <div class="page-shell">
       <header class="site-header" aria-label="Primary navigation">
-        <a class="wordmark" href="#main-content" aria-label="Matthew Anderson, home">
-          Matthew Anderson
+        <a class="wordmark" href="#main-content" aria-label="builtbymatthew, home">
+          builtbymatthew
         </a>
 
         <nav class="nav-links" aria-label="Main menu">
@@ -42,15 +42,48 @@
 
           <div class="supporting-content">
             <p class="intro">
-              I design and build thoughtful websites for businesses, organisations and people
-              with something worth putting online.
+              I design, build and implement websites for businesses, organisations, and people
+              who want something worth putting online.
             </p>
 
             <div class="actions" aria-label="Next steps">
-              <a class="work-link" href="#work">
-                <span>View my work</span>
-                <span class="work-arrow" aria-hidden="true">↘</span>
-              </a>
+              <div class="work-menu-wrap">
+                <button
+                  class="work-link"
+                  type="button"
+                  aria-expanded="false"
+                  aria-haspopup="menu"
+                  aria-controls="work-menu"
+                >
+                  <span>View my work</span>
+                  <span class="work-arrow" aria-hidden="true">↘</span>
+                </button>
+
+                <div
+                  class="work-menu"
+                  id="work-menu"
+                  role="menu"
+                  aria-label="View my work"
+                  aria-hidden="true"
+                  inert
+                >
+                  <a
+                    class="work-option"
+                    href="https://hsworldtravel.wixstudio.com/main/projects"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    role="menuitem"
+                  >
+                    <span>View my portfolio</span>
+                    <span class="option-arrow" aria-hidden="true">↗</span>
+                  </a>
+
+                  <span class="work-option work-option--disabled" role="menuitem" aria-disabled="true">
+                    <span>View sites</span>
+                    <span class="coming-soon">Coming soon</span>
+                  </span>
+                </div>
+              </div>
 
               <a class="project-link" href="#contact">
                 <span class="project-fill" aria-hidden="true"></span>

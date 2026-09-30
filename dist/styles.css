@@ -71,6 +71,7 @@ a {
 
 .wordmark {
   white-space: nowrap;
+  text-transform: none;
 }
 
 .nav-links {
@@ -181,13 +182,26 @@ a {
   text-transform: uppercase;
 }
 
+.work-menu-wrap {
+  position: relative;
+  z-index: 5;
+}
+
 .work-link {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
+  border: 0;
   padding-block: 0.8rem 0.7rem;
+  padding-inline: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
   text-decoration: none;
+  text-transform: inherit;
   transition: transform 420ms var(--ease-out);
 }
 
@@ -237,6 +251,91 @@ a {
 .work-link:hover .work-arrow,
 .work-link:focus-visible .work-arrow {
   transform: translate(0.18rem, 0.18rem);
+}
+
+.work-link[aria-expanded="true"] .work-arrow {
+  transform: rotate(-90deg);
+}
+
+.work-menu {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.65rem);
+  left: 0;
+  width: min(19rem, calc(100vw - (var(--gutter) * 2)));
+  overflow: hidden;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+  pointer-events: none;
+  transform: translateY(-0.45rem);
+  transform-origin: top;
+  visibility: hidden;
+  transition:
+    clip-path 340ms var(--ease-out),
+    opacity 240ms ease,
+    transform 340ms var(--ease-out),
+    visibility 0s linear 340ms;
+}
+
+.work-menu[data-open="true"] {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+  pointer-events: auto;
+  transform: translateY(0);
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.work-option {
+  display: flex;
+  min-height: 3.7rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 1.1rem;
+  color: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.065em;
+  line-height: 1.1;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.work-option + .work-option {
+  border-top: 1px solid rgba(24, 24, 21, 0.35);
+}
+
+.work-option[href] {
+  transition: background-color 260ms ease, color 260ms ease, padding 320ms var(--ease-out);
+}
+
+.work-option[href]:hover,
+.work-option[href]:focus-visible {
+  padding-left: 1.35rem;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.option-arrow {
+  transition: transform 320ms var(--ease-out);
+}
+
+.work-option[href]:hover .option-arrow,
+.work-option[href]:focus-visible .option-arrow {
+  transform: translate(0.14rem, -0.14rem);
+}
+
+.work-option--disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.coming-soon {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
 }
 
 .project-link {
@@ -408,6 +507,10 @@ a {
   .work-link {
     width: max-content;
     min-height: 2.75rem;
+  }
+
+  .work-menu {
+    width: calc(100vw - (var(--gutter) * 2));
   }
 
   .project-link {
