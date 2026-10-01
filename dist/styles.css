@@ -70,8 +70,19 @@ a {
 }
 
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   white-space: nowrap;
   text-transform: none;
+}
+
+.wordmark-logo {
+  display: block;
+  width: 1.35em;
+  height: 1.35em;
+  object-fit: contain;
+  flex: 0 0 auto;
 }
 
 .nav-links {
@@ -403,15 +414,48 @@ a {
   transform: translateX(0);
 }
 
-.location {
-  align-self: flex-end;
+.hero-meta {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
   margin: clamp(3rem, 6vh, 6rem) 0 0;
+  opacity: 0;
+  animation: location-in 600ms var(--ease-out) 820ms forwards;
+}
+
+.location,
+.terms-link {
+  margin: 0;
   font-size: 0.74rem;
   letter-spacing: 0.09em;
   line-height: 1;
   text-transform: uppercase;
-  opacity: 0;
-  animation: location-in 600ms var(--ease-out) 820ms forwards;
+}
+
+.terms-link {
+  position: relative;
+  padding-block: 0.45rem;
+  text-decoration: none;
+}
+
+.terms-link::after {
+  position: absolute;
+  right: 0;
+  bottom: 0.1rem;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 360ms var(--ease-out);
+}
+
+.terms-link:hover::after,
+.terms-link:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 .anchor-target {
@@ -519,8 +563,12 @@ a {
     justify-content: space-between;
   }
 
-  .location {
+  .hero-meta {
     margin-top: 3rem;
+  }
+
+  .location,
+  .terms-link {
     font-size: 0.67rem;
   }
 }
@@ -559,7 +607,7 @@ a {
   .site-header,
   .intro,
   .actions,
-  .location {
+  .hero-meta {
     opacity: 1;
     transform: none;
   }
