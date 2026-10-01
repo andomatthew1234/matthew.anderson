@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Review and confirm the terms for the Cards of Canons website project."
+    />
+    <meta name="theme-color" content="#f3efe6" />
+    <script>
+      if (window.location.hash === "#redirect-from-stripe") {
+        document.documentElement.classList.add("stripe-return-pending");
+      }
+    </script>
+    <title>Confirm Terms — Cards of Canons | Built by Matthew</title>
+    <link rel="icon" type="image/png" href="../../favicon.png" />
+    <link rel="stylesheet" href="../../styles.css" />
+    <link rel="stylesheet" href="./confirmation.css" />
+    <script src="./confirmation.js" defer></script>
+  </head>
+  <body class="confirmation-page">
+    <a class="skip-link" href="#main-content">Skip to confirmation</a>
+
+    <div class="page-shell confirmation-shell">
+      <header class="site-header confirmation-header" aria-label="Page navigation">
+        <a class="wordmark" href="/" aria-label="builtbymatthew, home">
+          <img class="wordmark-logo" src="../../favicon.png" alt="" aria-hidden="true" />
+          <span>builtbymatthew</span>
+        </a>
+        <a class="back-link" href="/">Back to home <span aria-hidden="true">↙</span></a>
+      </header>
+
+      <main class="confirmation-layout" id="main-content">
+        <section class="purchase-context" aria-labelledby="page-title">
+          <div class="purchase-context-content" id="purchase-context-content">
+            <p class="eyebrow">Cards of Canons · Project confirmation</p>
+            <h1 id="page-title">Confirmation of terms and conditions</h1>
+            <p class="confirmation-lead">
+              Confirm everything looks good before continuing to your invoice payment for Cards of Canons.
+            </p>
+            <p class="creator-credit">Website created by Matthew Anderson</p>
+
+            <dl class="project-summary">
+              <div>
+                <dt>Project</dt>
+                <dd>Cards of Canons</dd>
+              </div>
+              <div>
+                <dt>Service</dt>
+                <dd>Website design &amp; development</dd>
+              </div>
+              <div>
+                <dt>Created by</dt>
+                <dd>Matthew Anderson</dd>
+              </div>
+              <div>
+                <dt>Next step</dt>
+                <dd>Invoice payment</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="rocket-experience" id="rocket-experience" aria-hidden="true" hidden>
+            <p class="rocket-status" id="rocket-status" aria-live="polite">You'll be redirected shortly.</p>
+            <div class="rocket-stage">
+              <svg class="rocket-art" viewBox="0 0 120 260" aria-hidden="true" focusable="false">
+                <g class="rocket-smoke">
+                  <circle class="smoke-puff smoke-puff--one" cx="43" cy="226" r="11" />
+                  <circle class="smoke-puff smoke-puff--two" cx="61" cy="234" r="13" />
+                  <circle class="smoke-puff smoke-puff--three" cx="78" cy="225" r="10" />
+                  <circle class="smoke-puff smoke-puff--four" cx="52" cy="244" r="8" />
+                  <circle class="smoke-puff smoke-puff--five" cx="72" cy="244" r="9" />
+                  <circle class="smoke-puff smoke-puff--six" cx="33" cy="237" r="16" />
+                  <circle class="smoke-puff smoke-puff--seven" cx="89" cy="238" r="18" />
+                  <circle class="smoke-puff smoke-puff--eight" cx="60" cy="251" r="20" />
+                </g>
+                <path class="rocket-flame" d="M51 179 C49 198 54 214 60 231 C66 214 71 198 69 179 Z" />
+                <g class="rocket-shell">
+                  <path class="rocket-hull" d="M60 14 C44 34 35 64 35 103 V158 L22 181 L48 175 L60 182 L72 175 L98 181 L85 158 V103 C85 64 76 34 60 14 Z" />
+                  <path class="rocket-fin-detail" d="M35 143 H85 M48 175 L48 157 M72 175 L72 157" />
+                  <circle class="rocket-window" cx="60" cy="91" r="12" />
+                  <circle class="rocket-window-core" cx="60" cy="91" r="5" />
+                  <path class="rocket-nose-detail" d="M53 34 H67" />
+                </g>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        <section class="terms-panel" aria-label="Purchase confirmation">
+          <div class="step-stack" id="step-stack">
+            <section class="confirmation-step" id="terms-step" aria-labelledby="terms-title">
+              <div class="terms-heading">
+                <p class="eyebrow">Before payment</p>
+                <h2 id="terms-title" tabindex="-1">Terms and Conditions</h2>
+                <p>Please review the terms below before continuing to payment.</p>
+              </div>
+
+              <p class="terms-error" id="terms-error" aria-live="assertive" aria-atomic="true"></p>
+              <div class="terms-frame" id="terms-frame">
+                <div
+                  class="terms-scroll"
+                  id="terms-scroll"
+                  tabindex="0"
+                  role="region"
+                  aria-label="Website Development Terms and Conditions"
+                  aria-describedby="terms-cue"
+                >
+                  <p class="terms-loading" id="terms-loading">Loading terms…</p>
+                </div>
+                <p class="terms-cue" id="terms-cue" aria-live="polite">
+                  <span id="terms-cue-text">Scroll to review all terms</span>
+                  <span id="terms-cue-icon" aria-hidden="true">↓</span>
+                </p>
+              </div>
+
+              <div class="continue-row">
+                <button class="continue-button" id="continue-button" type="button" disabled>
+                  <span>Continue</span>
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            </section>
+
+            <section
+              class="confirmation-step payment-step"
+              id="payment-step"
+              aria-labelledby="payment-title"
+              hidden
+              inert
+            >
+              <button class="back-to-terms" id="back-to-terms" type="button">
+                <span aria-hidden="true">←</span> Back to terms
+              </button>
+
+              <div class="terms-heading payment-heading">
+                <p class="eyebrow">Payment method</p>
+                <h2 id="payment-title" tabindex="-1">Choose how to pay</h2>
+                <p>Select how you would like to continue with your Cards of Canons purchase.</p>
+              </div>
+
+              <fieldset class="payment-options" id="payment-options">
+                <legend class="visually-hidden">Select a payment method</legend>
+                <label class="payment-option">
+                  <input type="radio" name="payment-method" value="payNow" />
+                  <span class="option-indicator" aria-hidden="true"></span>
+                  <span class="payment-option-content">
+                    <span class="payment-option-title">Pay now</span>
+                    <span class="payment-option-description">
+                      Make your full purchase or split it into 4 payments with Klarna right now.
+                    </span>
+                    <span class="option-benefits">
+                      <span><span class="benefit-check" aria-hidden="true"></span>Make your payment instantly</span>
+                      <span><span class="benefit-check" aria-hidden="true"></span>Pay with credit/debit card, Klarna Pay in 4, or express payment</span>
+                    </span>
+                  </span>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="payment-method" value="invoice" />
+                  <span class="option-indicator" aria-hidden="true"></span>
+                  <span class="payment-option-content">
+                    <span class="payment-option-title">Pay using invoice</span>
+                    <span class="payment-option-description">
+                      Make your full purchase or split it into 4 payments with Klarna using an invoice.
+                    </span>
+                    <span class="option-benefits">
+                      <span><span class="benefit-check" aria-hidden="true"></span>Pay or start your Pay in 4 split within 30 days of receiving the invoice</span>
+                      <span><span class="benefit-check" aria-hidden="true"></span>Pay with credit/debit card, direct bank debit, Klarna Pay in 4, or express payment</span>
+                    </span>
+                    <span class="invoice-fee-notice">
+                      <span class="fee-warning-icon" aria-hidden="true"></span>
+                      <span>Higher card processing fees apply when using an invoice.</span>
+                    </span>
+                  </span>
+                </label>
+              </fieldset>
+
+              <div class="continue-row payment-continue-row">
+                <button class="continue-button" id="payment-continue-button" type="button" disabled>
+                  <span>Continue</span>
+                  <span aria-hidden="true">→</span>
+                </button>
+                <p class="payment-note" id="payment-note" role="status" aria-live="polite"></p>
+              </div>
+            </section>
+
+            <section
+              class="confirmation-step cost-step"
+              id="cost-step"
+              aria-labelledby="cost-title"
+              hidden
+              inert
+            >
+              <button class="back-to-terms" id="back-to-payment" type="button">
+                <span aria-hidden="true">←</span> Back
+              </button>
+
+              <div class="terms-heading cost-heading">
+                <p class="eyebrow">Purchase summary</p>
+                <h2 id="cost-title" tabindex="-1">Cost breakdown</h2>
+                <p>Review your purchase total before continuing to payment.</p>
+              </div>
+
+              <div class="cost-method-row">
+                <div>
+                  <span class="cost-section-label">Payment method</span>
+                  <strong id="selected-payment-label" aria-live="polite"></strong>
+                </div>
+                <button class="inline-change" id="change-payment" type="button">Change</button>
+              </div>
+
+              <dl class="cost-items" aria-label="Itemised cost breakdown">
+                <div class="cost-line">
+                  <dt>Website build</dt>
+                  <dd class="money-value" id="website-build-cost">
+                    <span class="money-display" aria-hidden="true"></span>
+                    <span class="visually-hidden money-speech"></span>
+                  </dd>
+                </div>
+                <div class="cost-line">
+                  <dt>Card processing and payment fees</dt>
+                  <dd class="money-value" id="processing-fee-cost">
+                    <span class="money-display" aria-hidden="true"></span>
+                    <span class="visually-hidden money-speech"></span>
+                  </dd>
+                </div>
+                <div class="cost-total-row">
+                  <dt>Total</dt>
+                  <dd class="money-value" id="purchase-total" aria-live="polite">
+                    <span class="money-display" aria-hidden="true"></span>
+                    <span class="visually-hidden money-speech"></span>
+                  </dd>
+                </div>
+              </dl>
+
+              <aside class="savings-banner" id="savings-banner" role="note" hidden>
+                <span class="savings-icon" aria-hidden="true">i</span>
+                <p>
+                  You could save
+                  <span class="money-value" id="potential-savings">
+                    <span class="money-display" aria-hidden="true"></span>
+                    <span class="visually-hidden money-speech"></span>
+                  </span>
+                  in processing fees by paying now.
+                </p>
+                <button class="savings-action" id="switch-to-pay-now" type="button">
+                  Switch to Pay now <span aria-hidden="true">→</span>
+                </button>
+              </aside>
+
+              <div class="continue-row cost-continue-row">
+                <button class="continue-button cost-continue-button" id="continue-to-payment" type="button">
+                  <span>Continue to payment</span>
+                  <span aria-hidden="true">→</span>
+                </button>
+                <p class="payment-note" id="cost-payment-note" role="status" aria-live="polite"></p>
+              </div>
+              <p class="currency-note">All amounts shown in AUD.</p>
+            </section>
+
+            <section
+              class="confirmation-step final-review-step"
+              id="final-review-step"
+              aria-labelledby="final-review-title"
+              hidden
+              inert
+            >
+              <div class="final-review-content" id="final-review-content">
+                <button class="back-to-terms" id="back-to-cost" type="button">
+                  <span aria-hidden="true">←</span> Back
+                </button>
+
+                <div class="terms-heading final-review-heading">
+                  <p class="eyebrow">Final review</p>
+                  <h2 id="final-review-title" tabindex="-1">Final review</h2>
+                  <p>Here's what you've chosen. Review it and go back if necessary.</p>
+                </div>
+
+                <div class="final-review-summary">
+                  <div class="final-review-row">
+                    <div>
+                      <span class="cost-section-label">Payment method</span>
+                      <strong id="final-payment-method" aria-live="polite">Pay now</strong>
+                    </div>
+                    <button class="inline-change" id="change-final-payment" type="button">Change</button>
+                  </div>
+
+                  <div class="final-review-row final-terms-row">
+                    <div class="final-terms-status">
+                      <span class="review-check-icon" aria-hidden="true"></span>
+                      <div>
+                        <span class="cost-section-label">Terms and Conditions</span>
+                        <strong>Terms and Conditions reviewed</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="final-review-total">
+                    <span class="cost-section-label">Total</span>
+                    <strong class="money-value" id="final-review-total" aria-live="polite">
+                      <span class="money-display" aria-hidden="true">$407.22</span>
+                      <span class="visually-hidden money-speech">407 dollars and 22 cents AUD</span>
+                      <span class="final-currency" aria-hidden="true"> AUD</span>
+                    </strong>
+                  </div>
+                </div>
+
+                <p class="final-next-step" id="final-next-step">You'll be redirected to Stripe to complete your payment.</p>
+                <div class="continue-row final-action-row">
+                  <button class="continue-button final-action-button" id="final-action" type="button" disabled aria-busy="true">
+                    <span id="final-action-label">Please wait...</span>
+                    <span aria-hidden="true">→</span>
+                  </button>
+                  <p class="payment-note" id="final-action-note" role="status" aria-live="polite"></p>
+                </div>
+              </div>
+
+              <section
+                class="invoice-preparation"
+                id="invoice-preparation"
+                aria-labelledby="invoice-preparation-title"
+                hidden
+                inert
+              >
+                <h2 class="visually-hidden" id="invoice-preparation-title" tabindex="-1">Invoice preparation</h2>
+                <p class="invoice-preparing-message" id="invoice-preparing-message" aria-live="polite" hidden>
+                  Preparing your invoice...
+                </p>
+                <div class="invoice-scene">
+                  <div
+                    class="invoice-document"
+                    id="invoice-document"
+                    role="img"
+                    aria-label="A portrait invoice document being prepared, with abstract lines and no invoice details."
+                  >
+                    <span class="invoice-writing-line invoice-line--brand" aria-hidden="true"><i></i></span>
+                    <span class="invoice-writing-line invoice-line--title" aria-hidden="true"><i></i></span>
+                    <span class="invoice-writing-line invoice-line--details" aria-hidden="true"><i></i><i></i></span>
+                    <span class="invoice-writing-line invoice-line--address" aria-hidden="true"><i></i><i></i></span>
+                    <span class="invoice-writing-line invoice-line--table-head" aria-hidden="true"><i></i><i></i></span>
+                    <span class="invoice-writing-line invoice-line--item-one" aria-hidden="true"><i></i><i></i></span>
+                    <span class="invoice-writing-line invoice-line--item-two" aria-hidden="true"><i></i><i></i></span>
+                    <span class="invoice-writing-line invoice-line--item-three" aria-hidden="true"><i></i><i></i></span>
+                    <span class="invoice-writing-line invoice-line--divider" aria-hidden="true"><i></i></span>
+                    <span class="invoice-writing-line invoice-line--subtotal" aria-hidden="true"><i></i><i></i></span>
+                    <span class="invoice-writing-line invoice-line--tax" aria-hidden="true"><i></i><i></i></span>
+                    <span class="invoice-writing-line invoice-line--total" aria-hidden="true"><i></i><i></i></span>
+                    <span class="invoice-writing-line invoice-line--footer" data-write-after="4200" aria-hidden="true"><i></i></span>
+                    <span class="invoice-writing-line invoice-line--footer-short" data-write-after="6900" aria-hidden="true"><i></i></span>
+                    <svg class="invoice-pen" id="invoice-pen" viewBox="0 0 36 100" aria-hidden="true" focusable="false">
+                      <path class="invoice-pen-body" d="M18 3 L27 20 L24 78 L18 96 L12 78 L9 20 Z" />
+                      <path class="invoice-pen-detail" d="M11 24 H25 M12 72 H24" />
+                      <path class="invoice-pen-nib" d="M12 78 L18 96 L24 78 Z" />
+                    </svg>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                class="invoice-request-success"
+                id="invoice-request-success"
+                aria-labelledby="invoice-success-title"
+                aria-live="polite"
+                hidden
+                inert
+              >
+                <svg class="success-mark invoice-success-mark" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+                  <circle class="success-ring" cx="60" cy="60" r="49" />
+                  <path class="success-check" d="M35 61 L52 78 L86 42" />
+                </svg>
+                <h2 id="invoice-success-title" tabindex="-1">We're preparing your invoice.</h2>
+                <p>Please wait while we prepare your invoice. This can take up to 48 hours, although we'll try to get it to you as quickly as possible.</p>
+                <p>We'll send it to the email address below. Once you receive the invoice, you'll have 30 days to complete the payment.</p>
+                <div class="invoice-destination">
+                  <span class="cost-section-label">Invoice will be sent to</span>
+                  <a href="mailto:chapmanjohn503@gmail.com">chapmanjohn503@gmail.com</a>
+                </div>
+                <p class="invoice-friendly-close">Enjoy your website :)</p>
+                <p class="invoice-preview-note">Preview only: invoice requests are not connected yet.</p>
+                <a class="continue-button invoice-home-button" href="/">
+                  <span>Back to builtbymatthew</span>
+                  <span aria-hidden="true">→</span>
+                </a>
+              </section>
+
+              <section class="payment-success" id="payment-success" aria-labelledby="success-title" hidden inert>
+                <p class="payment-success-kicker">Payment complete</p>
+                <svg class="success-mark" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+                  <circle class="success-ring" cx="60" cy="60" r="49" />
+                  <path class="success-check" d="M35 61 L52 78 L86 42" />
+                </svg>
+                <h1 id="success-title" tabindex="-1">Payment complete.</h1>
+                <p>Your payment has been completed successfully.</p>
+                <div class="payment-success-meta">
+                  <div>
+                    <span class="cost-section-label">Project</span>
+                    <strong>Cards of Canons</strong>
+                  </div>
+                  <div>
+                    <span class="cost-section-label">Total</span>
+                    <strong class="money-value" id="stripe-success-total">
+                      <span class="money-display" aria-hidden="true"></span>
+                      <span class="visually-hidden money-speech"></span>
+                      <span class="final-currency" aria-hidden="true"> AUD</span>
+                    </strong>
+                  </div>
+                </div>
+                <a class="continue-button payment-success-home" href="/">
+                  <span>Back to builtbymatthew</span>
+                  <span aria-hidden="true">→</span>
+                </a>
+              </section>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="redirect-experience" id="redirect-experience" aria-hidden="true" hidden>
+      <div class="smoke-transition" id="smoke-transition">
+        <div class="smoke-wash"></div>
+        <div class="smoke-billow smoke-billow--one"></div>
+        <div class="smoke-billow smoke-billow--two"></div>
+        <div class="smoke-billow smoke-billow--three"></div>
+        <div class="smoke-billow smoke-billow--four"></div>
+        <div class="smoke-billow smoke-billow--five"></div>
+      </div>
+    </div>
+  </body>
+</html>
