@@ -15,10 +15,11 @@ const INVOICE_REDUCED_DELAY_MS = 1800;
 const INVOICE_FINAL_FADE_MS = 420;
 const PRICING = {
   websiteBuild: 40000,
-  processingFees: {
-    payNow: 722,
-    invoice: 889,
-  },
+  communityAddon: 2000,
+  mainDomainRegistration: 2000,
+  emailDomainRegistration: 5500,
+  cardProcessing: 1000,
+  invoiceProcessing: 700,
 };
 const termsScroll = document.querySelector("#terms-scroll");
 const termsFrame = document.querySelector("#terms-frame");
@@ -41,7 +42,12 @@ const paymentContinueButton = document.querySelector("#payment-continue-button")
 const paymentNote = document.querySelector("#payment-note");
 const selectedPaymentLabel = document.querySelector("#selected-payment-label");
 const websiteBuildCost = document.querySelector("#website-build-cost");
+const communityAddonCost = document.querySelector("#community-addon-cost");
+const mainDomainRegistrationCost = document.querySelector("#main-domain-registration-cost");
+const emailDomainRegistrationCost = document.querySelector("#email-domain-registration-cost");
 const processingFeeCost = document.querySelector("#processing-fee-cost");
+const invoiceProcessingRow = document.querySelector("#invoice-processing-row");
+const invoiceProcessingCost = document.querySelector("#invoice-processing-cost");
 const purchaseTotal = document.querySelector("#purchase-total");
 const savingsBanner = document.querySelector("#savings-banner");
 const potentialSavings = document.querySelector("#potential-savings");
@@ -80,6 +86,14 @@ let selectedPaymentMethod = "";
 
 const formatCurrency = (cents) => `$${(cents / 100).toFixed(2)}`;
 
+const getPurchaseTotal = (paymentMethod) =>
+  PRICING.websiteBuild +
+  PRICING.communityAddon +
+  PRICING.mainDomainRegistration +
+  PRICING.emailDomainRegistration +
+  PRICING.cardProcessing +
+  (paymentMethod === "invoice" ? PRICING.invoiceProcessing : 0);
+
 const setMoney = (element, cents) => {
   const dollars = Math.floor(cents / 100);
   const remainingCents = cents % 100;
@@ -90,27 +104,30 @@ const setMoney = (element, cents) => {
 const renderCostBreakdown = () => {
   if (!selectedPaymentMethod) return;
 
-  const processingFee = PRICING.processingFees[selectedPaymentMethod];
-  const total = PRICING.websiteBuild + processingFee;
+  const total = getPurchaseTotal(selectedPaymentMethod);
   const methodLabel = selectedPaymentMethod === "payNow" ? "Pay now" : "Pay using invoice";
 
   selectedPaymentLabel.textContent = methodLabel;
   setMoney(websiteBuildCost, PRICING.websiteBuild);
-  setMoney(processingFeeCost, processingFee);
+  setMoney(communityAddonCost, PRICING.communityAddon);
+  setMoney(mainDomainRegistrationCost, PRICING.mainDomainRegistration);
+  setMoney(emailDomainRegistrationCost, PRICING.emailDomainRegistration);
+  setMoney(processingFeeCost, PRICING.cardProcessing);
+  invoiceProcessingRow.hidden = selectedPaymentMethod !== "invoice";
   setMoney(purchaseTotal, total);
   savingsBanner.hidden = selectedPaymentMethod !== "invoice";
   costPaymentNote.textContent = "";
 
   if (selectedPaymentMethod === "invoice") {
-    setMoney(potentialSavings, PRICING.processingFees.invoice - PRICING.processingFees.payNow);
+    setMoney(invoiceProcessingCost, PRICING.invoiceProcessing);
+    setMoney(potentialSavings, PRICING.invoiceProcessing);
   }
 };
 
 const renderFinalReview = () => {
   if (!selectedPaymentMethod) return;
 
-  const processingFee = PRICING.processingFees[selectedPaymentMethod];
-  const total = PRICING.websiteBuild + processingFee;
+  const total = getPurchaseTotal(selectedPaymentMethod);
   const isPayNow = selectedPaymentMethod === "payNow";
 
   finalPaymentMethod.textContent = isPayNow ? "Pay now" : "Invoice";
@@ -193,7 +210,7 @@ const startInvoicePreparation = () => {
   if (typeof INVOICE_REQUEST_HANDLER === "function") {
     INVOICE_REQUEST_HANDLER({
       email: "chapmanjohn503@gmail.com",
-      totalCents: PRICING.websiteBuild + PRICING.processingFees.invoice,
+      totalCents: getPurchaseTotal("invoice"),
     });
   }
 
@@ -243,7 +260,7 @@ const showPaymentSuccess = () => {
   window.setTimeout(() => purchaseContextContent.classList.remove("is-returning"), 650);
   finalReviewContent.hidden = true;
   finalReviewContent.inert = true;
-  setMoney(stripeSuccessTotal, PRICING.websiteBuild + PRICING.processingFees.payNow);
+  setMoney(stripeSuccessTotal, getPurchaseTotal("payNow"));
   paymentSuccess.hidden = false;
   paymentSuccess.inert = false;
   paymentSuccess.classList.add("is-visible");

@@ -635,6 +635,10 @@ html {
   padding-block: 1rem;
 }
 
+.cost-line[hidden] {
+  display: none;
+}
+
 .cost-line dt {
   font-size: 1rem;
   line-height: 1.4;
