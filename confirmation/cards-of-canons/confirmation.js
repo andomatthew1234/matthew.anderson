@@ -18,8 +18,8 @@ const PRICING = {
   communityAddon: 2000,
   mainDomainRegistration: 2000,
   emailDomainRegistration: 5500,
-  cardProcessing: 1000,
-  invoiceProcessing: 700,
+  cardProcessing: 1500,
+  invoiceProcessing: 1200,
 };
 const termsScroll = document.querySelector("#terms-scroll");
 const termsFrame = document.querySelector("#terms-frame");
