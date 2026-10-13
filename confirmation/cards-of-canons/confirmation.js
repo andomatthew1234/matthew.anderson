@@ -18,6 +18,7 @@ const PRICING = {
   communityAddon: 2000,
   mainDomainRegistration: 2000,
   emailDomainRegistration: 5500,
+  secondaryDomains: 8000,
   cardProcessing: 1500,
   invoiceProcessing: 1200,
 };
@@ -45,6 +46,7 @@ const websiteBuildCost = document.querySelector("#website-build-cost");
 const communityAddonCost = document.querySelector("#community-addon-cost");
 const mainDomainRegistrationCost = document.querySelector("#main-domain-registration-cost");
 const emailDomainRegistrationCost = document.querySelector("#email-domain-registration-cost");
+const secondaryDomainsCost = document.querySelector("#secondary-domains-cost");
 const processingFeeCost = document.querySelector("#processing-fee-cost");
 const invoiceProcessingRow = document.querySelector("#invoice-processing-row");
 const invoiceProcessingCost = document.querySelector("#invoice-processing-cost");
@@ -91,6 +93,7 @@ const getPurchaseTotal = (paymentMethod) =>
   PRICING.communityAddon +
   PRICING.mainDomainRegistration +
   PRICING.emailDomainRegistration +
+  PRICING.secondaryDomains +
   PRICING.cardProcessing +
   (paymentMethod === "invoice" ? PRICING.invoiceProcessing : 0);
 
@@ -112,6 +115,7 @@ const renderCostBreakdown = () => {
   setMoney(communityAddonCost, PRICING.communityAddon);
   setMoney(mainDomainRegistrationCost, PRICING.mainDomainRegistration);
   setMoney(emailDomainRegistrationCost, PRICING.emailDomainRegistration);
+  setMoney(secondaryDomainsCost, PRICING.secondaryDomains);
   setMoney(processingFeeCost, PRICING.cardProcessing);
   invoiceProcessingRow.hidden = selectedPaymentMethod !== "invoice";
   setMoney(purchaseTotal, total);
