@@ -21,6 +21,7 @@ const PRICING = {
   secondaryDomains: 8000,
   cardProcessing: 1500,
   invoiceProcessing: 1200,
+  invoiceTreasuryAddon: 2000,
 };
 const termsScroll = document.querySelector("#terms-scroll");
 const termsFrame = document.querySelector("#terms-frame");
@@ -50,6 +51,8 @@ const secondaryDomainsCost = document.querySelector("#secondary-domains-cost");
 const processingFeeCost = document.querySelector("#processing-fee-cost");
 const invoiceProcessingRow = document.querySelector("#invoice-processing-row");
 const invoiceProcessingCost = document.querySelector("#invoice-processing-cost");
+const invoiceTreasuryAddonRow = document.querySelector("#invoice-treasury-addon-row");
+const invoiceTreasuryAddonCost = document.querySelector("#invoice-treasury-addon-cost");
 const purchaseTotal = document.querySelector("#purchase-total");
 const savingsBanner = document.querySelector("#savings-banner");
 const potentialSavings = document.querySelector("#potential-savings");
@@ -95,7 +98,7 @@ const getPurchaseTotal = (paymentMethod) =>
   PRICING.emailDomainRegistration +
   PRICING.secondaryDomains +
   PRICING.cardProcessing +
-  (paymentMethod === "invoice" ? PRICING.invoiceProcessing : 0);
+  (paymentMethod === "invoice" ? PRICING.invoiceProcessing + PRICING.invoiceTreasuryAddon : 0);
 
 const setMoney = (element, cents) => {
   const dollars = Math.floor(cents / 100);
@@ -118,12 +121,14 @@ const renderCostBreakdown = () => {
   setMoney(secondaryDomainsCost, PRICING.secondaryDomains);
   setMoney(processingFeeCost, PRICING.cardProcessing);
   invoiceProcessingRow.hidden = selectedPaymentMethod !== "invoice";
+  invoiceTreasuryAddonRow.hidden = selectedPaymentMethod !== "invoice";
   setMoney(purchaseTotal, total);
   savingsBanner.hidden = selectedPaymentMethod !== "invoice";
   costPaymentNote.textContent = "";
 
   if (selectedPaymentMethod === "invoice") {
     setMoney(invoiceProcessingCost, PRICING.invoiceProcessing);
+    setMoney(invoiceTreasuryAddonCost, PRICING.invoiceTreasuryAddon);
     setMoney(potentialSavings, PRICING.invoiceProcessing);
   }
 };
