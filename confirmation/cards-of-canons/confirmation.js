@@ -1,4 +1,4 @@
-const PAY_NOW_URL = "https://buy.stripe.com/fZuaEYekg77n1nubqq53O0u";
+const PAY_NOW_URL = "https://buy.stripe.com/4gMcN6b843Vb2rydyy53O0H";
 // TODO: Connect this hook to a real invoice request backend; null means this page sends nothing.
 const INVOICE_REQUEST_HANDLER = null;
 const STRIPE_RETURN_HASH = "#redirect-from-stripe";
