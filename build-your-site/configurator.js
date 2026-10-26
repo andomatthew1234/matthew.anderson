@@ -28,6 +28,8 @@ let hasInteracted = false;
 let restoredSnapshot = null;
 let currentSnapshot = null;
 let currentCode = "";
+let quoteOutdated = false;
+let copyFeedbackTimer;
 const loadedVisuals = new Set();
 
 const flow = document.querySelector("#configuration-flow");
@@ -58,6 +60,17 @@ function showToast(message) {
   toast.textContent = message;
   toast.hidden = false;
   setTimeout(() => { toast.hidden = true; }, 2200);
+}
+
+async function copyText(value) {
+  if (navigator.clipboard?.writeText) {
+    try { await navigator.clipboard.writeText(value); return; } catch { /* Use the selection fallback below. */ }
+  }
+  const fallback = document.createElement("textarea");
+  fallback.value = value; fallback.readOnly = true; fallback.className = "clipboard-fallback";
+  document.body.append(fallback); fallback.select();
+  const copied = document.execCommand("copy"); fallback.remove();
+  if (!copied) throw new Error("Copying was blocked");
 }
 
 function visualMarkup(key, mobile = false) {
@@ -219,7 +232,8 @@ function renderEstimateSection() {
   const rows = reviewRows().map(([label, value]) => `<div class="review-line"><strong>${label}</strong><span>${escapeHtml(value)}</span></div>`).join("");
   const preparing = isGenerating ? `<div class="preparing-panel" role="status" aria-live="polite" aria-busy="true"><span class="preparing-spinner" aria-hidden="true"></span><strong>Preparing your estimate...</strong><small>Itemising pages, features and dependencies.</small></div>` : "";
   const quote = state.generated ? renderQuote(restoredSnapshot?.quote || currentSnapshot?.quote || calculateEstimate(state), Boolean(restoredSnapshot)) : "";
-  return sectionShell({ id: "estimate", number: "09 · Your website estimate", title: "Your website, your way.", intro: "Everything you've chosen, all in one place.", visual: "hosting", extraClass: "estimate-section", content: `<div class="review-list">${rows}</div><div class="generate-panel"><h3>Ready to see the full breakdown?</h3><p>Generate a detailed estimate locally. Nothing is submitted and no account is required.</p><button class="generate-button" type="button" data-generate ${isGenerating ? "disabled" : ""}>${isGenerating ? "Preparing..." : "Generate my estimate"}</button></div>${preparing}${quote}` });
+  const outdated = quoteOutdated ? '<p class="outdated-quote-note" role="status"><strong>Your previous quote number is outdated.</strong> Your configuration has changed, so generate a new estimate and continue again before emailing it.</p>' : "";
+  return sectionShell({ id: "estimate", number: "09 · Your website estimate", title: "Your website, your way.", intro: "Everything you've chosen, all in one place.", visual: "hosting", extraClass: "estimate-section", content: `<div class="review-list">${rows}</div>${outdated}<div class="generate-panel"><h3>Ready to see the full breakdown?</h3><p>Generate a detailed estimate locally. Nothing is submitted and no account is required.</p><button class="generate-button" type="button" data-generate ${isGenerating ? "disabled" : ""}>${isGenerating ? "Preparing..." : "Generate my estimate"}</button></div>${preparing}${quote}` });
 }
 
 function quoteTotal(quote) { return quote.totals.min === quote.totals.max ? `$${quote.totals.min} AUD` : `$${quote.totals.min}–${quote.totals.max} AUD`; }
@@ -231,11 +245,22 @@ function renderQuote(quote, historical = false) {
   const dependencyHtml = quote.dependencies?.length ? `<section class="quote-group"><p class="quote-group-title">Automatically included dependencies</p>${quote.dependencies.map((item) => `<p>${escapeHtml(item.reason)}</p>`).join("")}</section>` : "";
   const ongoing = quote.ongoingCharges?.length ? `<section class="quote-group"><p class="quote-group-title">Possible ongoing or third-party charges</p><ul>${quote.ongoingCharges.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section>` : "";
   const codePanel = currentCode ? renderCodePanel() : "";
-  return `<article class="quote-panel" id="generated-quote" tabindex="-1"><header class="quote-header"><div><p class="section-number">${historical ? "Recovered historical estimate" : "BuiltByMatthew"}</p><h3>Indicative estimate</h3></div><p>Pricing ${escapeHtml(restoredSnapshot?.pricingVersion || PRICING_VERSION)}</p></header>${historical ? '<p class="historical-note">This is the original saved quote snapshot. It has not been recalculated using current prices.</p>' : ""}${groupHtml}${unpriced}${dependencyHtml}<section class="quote-group"><p class="quote-group-title">Hosting</p><p>${escapeHtml(restoredSnapshot?.hosting?.label || hostingLabel(state.hosting))}</p></section>${ongoing}<div class="quote-total"><span>${quote.unpriced.length ? "Known subtotal" : "Estimated total"}</span><strong>${quoteTotal(quote)}</strong></div>${quote.unpriced.length ? '<p><strong>Complete total: subject to confirmation.</strong></p>' : ""}<p class="quote-notice">This is an indicative estimate, not a binding contract. Domain, hosting and third-party service fees may be additional.</p><div class="quote-actions"><button class="quote-action" type="button" data-copy>Copy estimate</button><button class="quote-action" type="button" data-edit>Edit selections</button><button class="quote-action" type="button" data-print>Print estimate</button><button class="quote-action" type="button" data-reset>Start again</button></div>${historical ? "" : `<div class="continue-panel"><h4>Happy with this starting point?</h4><p>Continuing saves a shareable copy of this indicative estimate. It does not create a contract, account or payment.</p><button class="generate-button" type="button" data-continue>I'm good with that quote, continue</button></div>`}${codePanel}</article>`;
+  const nextSteps = currentCode && !quoteOutdated ? renderWhatsNext() : "";
+  return `<article class="quote-panel" id="generated-quote" tabindex="-1"><header class="quote-header"><div><p class="section-number">${historical ? "Recovered historical estimate" : "BuiltByMatthew"}</p><h3>Indicative estimate</h3></div><p>Pricing ${escapeHtml(restoredSnapshot?.pricingVersion || PRICING_VERSION)}</p></header>${historical ? '<p class="historical-note">This is the original saved quote snapshot. It has not been recalculated using current prices.</p>' : ""}${groupHtml}${unpriced}${dependencyHtml}<section class="quote-group"><p class="quote-group-title">Hosting</p><p>${escapeHtml(restoredSnapshot?.hosting?.label || hostingLabel(state.hosting))}</p></section>${ongoing}<div class="quote-total"><span>${quote.unpriced.length ? "Known subtotal" : "Estimated total"}</span><strong>${quoteTotal(quote)}</strong></div>${quote.unpriced.length ? '<p><strong>Complete total: subject to confirmation.</strong></p>' : ""}<p class="quote-notice">This is an indicative estimate, not a binding contract. Domain, hosting and third-party service fees may be additional.</p><div class="quote-actions"><button class="quote-action" type="button" data-copy>Copy estimate</button><button class="quote-action" type="button" data-edit>Edit selections</button><button class="quote-action" type="button" data-print>Print estimate</button><button class="quote-action" type="button" data-reset>Start again</button></div>${historical ? "" : `<div class="continue-panel"><h4>Happy with this starting point?</h4><p>Continuing saves a shareable copy of this indicative estimate. It does not create a contract, account or payment.</p><button class="generate-button" type="button" data-continue>I'm good with that quote, continue</button></div>`}${codePanel}${nextSteps}</article>`;
 }
 
 function renderCodePanel() {
   return `<section class="code-panel" id="configuration-code"><p class="section-number">Configuration code</p><h4>Save or share your estimate.</h4><p>This self-contained code restores the configuration and original quote. It contains no project notes or personal information. Its checksum detects copying errors; it is not a security signature.</p><textarea readonly data-generated-code aria-label="Generated configuration code">${escapeHtml(currentCode)}</textarea><div class="quote-actions"><button class="quote-action" type="button" data-copy-code>Copy code</button><a class="quote-action" href="../quote-viewer/">Open quote viewer</a></div></section>`;
+}
+
+function quoteEmailHref() {
+  const subject = `Website enquiry — ${currentCode}`;
+  const body = `Hi Matthew,\n\nI'd like to enquire about getting a website built.\n\nMy name:\nWebsite name (if decided):\nBrief description:\n\nMy quote number: ${currentCode}\n\nThanks!`;
+  return `mailto:matthew@andomail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function renderWhatsNext() {
+  return `<section class="whats-next" aria-labelledby="whats-next-title"><header class="whats-next__header"><h3 id="whats-next-title">What's next?</h3><p>Let's get your website built! Here's what's next for your site.</p></header><ol class="next-steps"><li class="next-step"><span class="next-step__number" aria-hidden="true">01</span><div class="next-step__content"><h4>Check everything looks right</h4><p>Take a moment to review your quote above and make sure you're happy with everything you've selected.</p><a class="text-link" href="#generated-quote">Review my quote</a></div></li><li class="next-step"><span class="next-step__number" aria-hidden="true">02</span><div class="next-step__content"><h4>Send us an email</h4><p>Send me an email at <a class="text-link" href="mailto:matthew@andomail.com">matthew@andomail.com</a>. To help the process run smoothly, please include:</p><ul><li>Your name.</li><li>A brief description of your website and its name, if you've decided on one.</li><li>Your quote number, shown above.</li></ul><p>We typically reply within one to three days, often sooner.</p><div class="next-step__actions"><a class="quote-action next-step__primary" data-email-quote href="${escapeHtml(quoteEmailHref())}">Email me</a><button class="quote-action" type="button" data-copy-next-code>Copy quote number</button></div><p class="copy-feedback" data-next-feedback role="status" aria-live="polite"></p></div></li><li class="next-step"><span class="next-step__number" aria-hidden="true">03</span><div class="next-step__content"><h4>We'll get started on your site!</h4><p>Once we've discussed your project and confirmed the details, we'll get started on bringing your website to life.</p><p><strong>Work begins only after the project details and final quote have been agreed upon.</strong></p></div></li></ol></section>`;
 }
 
 function captureOpenComparisons() { return new Set(Array.from(document.querySelectorAll("[data-comparison][open]"), (item) => item.dataset.comparison)); }
@@ -264,10 +289,20 @@ function updateSummaryBar() {
 function cancelGeneration() { clearTimeout(generationTimer); isGenerating = false; }
 function activateSelectionVisual(key) { if (key && VISUAL_CONFIG[key]) setTimeout(() => setActiveVisual(key, reduceMotion.matches), 60); }
 
+function invalidateGeneratedQuote() {
+  cancelGeneration();
+  const hadQuoteNumber = Boolean(currentCode);
+  quoteOutdated = quoteOutdated || hadQuoteNumber;
+  restoredSnapshot = null; currentSnapshot = null; currentCode = ""; state.generated = false;
+  window.__CONFIGURATOR_CODE__ = "";
+  return hadQuoteNumber;
+}
+
 function mutate(mutator, message = "", focusSelector = "") {
-  cancelGeneration(); hasInteracted = true; restoredSnapshot = null; currentSnapshot = null; currentCode = ""; state.generated = false; state.notice = "";
+  const invalidatedQuote = invalidateGeneratedQuote(); hasInteracted = true; state.notice = "";
   mutator(state); normaliseState(state); renderAll({ preserveScroll: true, focusSelector });
-  if (state.notice || message) setNotice([message, state.notice].filter(Boolean).join(" "));
+  const outdatedMessage = invalidatedQuote ? "Your previous quote number is now outdated. Generate a new estimate before emailing it." : "";
+  if (state.notice || message || outdatedMessage) setNotice([message, state.notice, outdatedMessage].filter(Boolean).join(" "));
 }
 
 function handleTier(group, value) {
@@ -286,8 +321,9 @@ function toggleValue(key) {
 
 function applySelectedPreset(id) {
   if (hasInteracted && state.presetId !== id && !window.confirm("Applying another preset will replace your current selections. Continue?")) return;
-  cancelGeneration(); state = applyPreset(id); hasInteracted = false; restoredSnapshot = null; currentSnapshot = null; currentCode = ""; activeVisual = "pages";
+  const invalidatedQuote = invalidateGeneratedQuote(); state = applyPreset(id); hasInteracted = false; activeVisual = "pages";
   renderAll(); setActiveVisual("pages", true); setNotice(`${PRESET_CONFIG[id].name} applied. Every selection can still be customised.`);
+  if (invalidatedQuote) setNotice(`${PRESET_CONFIG[id].name} applied. Your previous quote number is outdated; generate a new estimate before emailing it.`);
   document.querySelector("#configuration")?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth" });
 }
 
@@ -317,8 +353,16 @@ document.addEventListener("change", (event) => {
 
 document.addEventListener("input", (event) => {
   const input = event.target;
-  if (input.matches("[data-byo-platform]")) { state.byoPlatform = input.value; state.generated = false; }
-  if (input.matches("[data-notes]")) { state.notes = input.value; state.generated = false; }
+  if (input.matches("[data-byo-platform], [data-notes]")) {
+    const hadActiveEstimate = state.generated || Boolean(currentCode) || Boolean(currentSnapshot) || Boolean(restoredSnapshot);
+    const invalidatedQuote = hadActiveEstimate ? invalidateGeneratedQuote() : false;
+    if (input.matches("[data-byo-platform]")) state.byoPlatform = input.value;
+    if (input.matches("[data-notes]")) state.notes = input.value;
+    if (hadActiveEstimate) {
+      estimateContainer.innerHTML = renderEstimateSection(); updateSummaryBar();
+      if (invalidatedQuote) setNotice("Your previous quote number is now outdated. Generate a new estimate before emailing it.");
+    }
+  }
 });
 
 document.addEventListener("click", async (event) => {
@@ -332,19 +376,25 @@ document.addEventListener("click", async (event) => {
     cancelGeneration(); restoredSnapshot = null; currentCode = ""; currentSnapshot = createQuoteSnapshot(state); isGenerating = true; estimateContainer.innerHTML = renderEstimateSection();
     generationTimer = setTimeout(() => { isGenerating = false; state.generated = true; estimateContainer.innerHTML = renderEstimateSection(); requestAnimationFrame(() => document.querySelector("#generated-quote")?.focus()); }, 2000);
   } else if (button.hasAttribute("data-continue")) {
-    currentSnapshot ||= createQuoteSnapshot(state); currentCode = encodeConfiguration(currentSnapshot); estimateContainer.innerHTML = renderEstimateSection(); requestAnimationFrame(() => document.querySelector("#configuration-code")?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "center" }));
+    currentSnapshot ||= createQuoteSnapshot(state); currentCode = encodeConfiguration(currentSnapshot); quoteOutdated = false; estimateContainer.innerHTML = renderEstimateSection(); window.__CONFIGURATOR_CODE__ = currentCode; requestAnimationFrame(() => document.querySelector("#configuration-code")?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "center" }));
   } else if (button.hasAttribute("data-recover")) {
     const input = document.querySelector("[data-recovery-code]"); const status = document.querySelector("[data-recovery-status]");
     try {
-      const snapshot = decodeConfiguration(input.value); state = restoreConfiguration(snapshot); restoredSnapshot = snapshot; currentSnapshot = snapshot; currentCode = input.value.trim(); state.generated = true; hasInteracted = false; renderAll(); setNotice("Configuration restored. The original saved estimate is shown below."); document.querySelector("#generated-quote")?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth" });
+      const snapshot = decodeConfiguration(input.value); state = restoreConfiguration(snapshot); restoredSnapshot = snapshot; currentSnapshot = snapshot; currentCode = input.value.trim(); quoteOutdated = false; state.generated = true; hasInteracted = false; renderAll(); setNotice("Configuration restored. The original saved estimate is shown below."); document.querySelector("#generated-quote")?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth" });
     } catch (error) { status.textContent = error.message; status.classList.add("is-error"); setNotice(error.message, true); }
   } else if (button.hasAttribute("data-copy")) {
-    try { await navigator.clipboard.writeText(generateQuoteText()); showToast("Estimate copied"); } catch { setNotice("Copying was blocked. Select and copy the estimate manually.", true); }
+    try { await copyText(generateQuoteText()); showToast("Estimate copied"); } catch { setNotice("Copying was blocked. Select and copy the estimate manually.", true); }
   } else if (button.hasAttribute("data-copy-code")) {
-    try { await navigator.clipboard.writeText(currentCode); showToast("Configuration code copied"); } catch { document.querySelector("[data-generated-code]")?.select(); setNotice("Copying was blocked. The full code is selected for you.", true); }
+    try { await copyText(currentCode); showToast("Configuration code copied"); } catch { document.querySelector("[data-generated-code]")?.select(); setNotice("Copying was blocked. The full code is selected for you.", true); }
+  } else if (button.hasAttribute("data-copy-next-code")) {
+    const feedback = document.querySelector("[data-next-feedback]");
+    try {
+      await copyText(currentCode); showToast("Quote number copied");
+      if (feedback) { clearTimeout(copyFeedbackTimer); feedback.textContent = "Quote number copied."; copyFeedbackTimer = setTimeout(() => { feedback.textContent = ""; }, 2200); }
+    } catch { document.querySelector("[data-generated-code]")?.select(); setNotice("Copying was blocked. The full quote number is selected for you.", true); }
   } else if (button.hasAttribute("data-print")) window.print();
   else if (button.hasAttribute("data-edit")) document.querySelector("#configuration")?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth" });
-  else if (button.hasAttribute("data-reset")) { cancelGeneration(); state = createInitialState(); hasInteracted = false; restoredSnapshot = null; currentSnapshot = null; currentCode = ""; activeVisual = "pages"; renderAll(); setActiveVisual("pages", true); document.querySelector("#preset-container")?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth" }); }
+  else if (button.hasAttribute("data-reset")) { cancelGeneration(); state = createInitialState(); hasInteracted = false; restoredSnapshot = null; currentSnapshot = null; currentCode = ""; quoteOutdated = false; activeVisual = "pages"; renderAll(); setActiveVisual("pages", true); document.querySelector("#preset-container")?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth" }); }
 });
 
 preloadVisuals(); setActiveVisual("pages", true); renderAll();

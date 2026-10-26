@@ -17,7 +17,7 @@ async function assertStructure(page, name) {
     sections: Array.from(document.querySelectorAll(".config-section"), (section) => section.id), presets: document.querySelectorAll("[data-preset]").length,
     oldPackages: document.querySelectorAll('[data-tier="pages"], [data-add-extra], [data-extra-name]').length, pages: document.querySelectorAll("[data-page]").length,
     homeDisabled: document.querySelector('[data-page="home"]')?.disabled, logo: document.querySelector(".wordmark-logo")?.naturalWidth,
-    startHeading: document.querySelector("#preset-title")?.textContent.trim(),
+    startHeading: document.querySelector("#preset-title")?.textContent.trim(), nextSteps: document.querySelectorAll(".whats-next").length,
   }));
   assert(JSON.stringify(result.sections) === JSON.stringify(expectedSections), `${name}: section order is ${result.sections.join(", ")}`);
   assert(result.presets === 8, `${name}: expected eight presets, got ${result.presets}`);
@@ -25,6 +25,7 @@ async function assertStructure(page, name) {
   assert(result.pages === 13 && result.homeDisabled, `${name}: direct page grid or required homepage is incorrect`);
   assert(result.logo > 0, `${name}: logo failed to load`);
   assert(result.startHeading === "Where would you like to start?", `${name}: preset heading is missing`);
+  assert(result.nextSteps === 0, `${name}: next steps appeared before a quote number was generated`);
 }
 
 async function assertImages(page, name, mobile) {
@@ -102,9 +103,31 @@ async function exercise(page, name) {
   await page.locator("[data-continue]").click();
   const code = await page.locator("[data-generated-code]").inputValue();
   assert(code.startsWith("BBM1-") && code.length > 1000, `${name}: deterministic code was not generated in full`);
+  const next = await page.evaluate(() => ({
+    heading: document.querySelector("#whats-next-title")?.textContent.trim(),
+    intro: document.querySelector(".whats-next__header p")?.textContent.trim(),
+    steps: Array.from(document.querySelectorAll(".next-step"), (step) => step.querySelector("h4")?.textContent.trim()),
+    email: document.querySelector("[data-email-quote]")?.getAttribute("href"),
+  }));
+  assert(next.heading === "What's next?", `${name}: What's next heading is incorrect`);
+  assert(next.intro === "Let's get your website built! Here's what's next for your site.", `${name}: What's next supporting copy is incorrect`);
+  assert(JSON.stringify(next.steps) === JSON.stringify(["Check everything looks right", "Send us an email", "We'll get started on your site!"]), `${name}: next-step content/order is incorrect`);
+  const decodedEmail = decodeURIComponent(next.email || "");
+  assert(decodedEmail.startsWith("mailto:matthew@andomail.com?subject=Website enquiry — "), `${name}: email recipient or subject is incorrect`);
+  assert(decodedEmail.includes(`Website enquiry — ${code}`) && decodedEmail.includes(`My quote number: ${code}`), `${name}: email does not contain the actual quote number`);
+  assert(decodedEmail.includes("My name:\nWebsite name (if decided):\nBrief description:"), `${name}: email body prompts are incomplete`);
+  await page.locator("[data-copy-next-code]").click();
+  await page.waitForFunction(() => document.querySelector("[data-next-feedback]")?.textContent.includes("copied"), null, { timeout: 2000 });
+  assert((await page.locator("[data-next-feedback]").textContent()).includes("copied"), `${name}: copy quote number success feedback is missing`);
+  assert(await page.evaluate(() => navigator.clipboard.readText()) === code, `${name}: copy quote number did not copy the current code`);
+  await page.locator('[data-page="team"]').click();
+  assert(!(await page.locator(".whats-next").count()), `${name}: next steps remained enabled after the configuration changed`);
+  assert(await page.locator(".outdated-quote-note").isVisible(), `${name}: outdated quote state was not shown after an edit`);
+  assert(!(await page.locator("[data-email-quote]").count()), `${name}: email action remained enabled for an outdated quote`);
   await page.locator("#code-recovery summary").click(); await page.locator("[data-recovery-code]").fill(code); await page.locator("[data-recover]").click();
   assert((await page.locator("#generated-quote").textContent()).includes("Recovered historical estimate"), `${name}: recovered quote is not labelled historical`);
   assert((await page.locator("#generated-quote").textContent()).includes("has not been recalculated"), `${name}: historical-price disclosure is missing`);
+  assert(await page.locator(".whats-next").isVisible(), `${name}: next steps did not return with a recovered valid quote number`);
   return code;
 }
 
@@ -122,7 +145,7 @@ async function validateViewer(baseUrl, code, name) {
 }
 
 async function smoke(url, scenario, viewport, full = false, reducedMotion = "no-preference") {
-  const name = `${url.pathname} · ${scenario}`; const context = await browser.newContext({ viewport, reducedMotion }); const page = await context.newPage(); const errors = [];
+  const name = `${url.pathname} · ${scenario}`; const context = await browser.newContext({ viewport, reducedMotion, permissions: ["clipboard-read", "clipboard-write"] }); const page = await context.newPage(); const errors = [];
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); }); page.on("pageerror", (error) => errors.push(error.message));
   const response = await page.goto(url.href, { waitUntil: "networkidle" }); assert(response?.ok(), `${name}: page returned ${response?.status()}`); await page.waitForSelector("#estimate");
   await assertStructure(page, name); await assertImages(page, name, viewport.width <= 820); await noOverflow(page, name, "initial render");
