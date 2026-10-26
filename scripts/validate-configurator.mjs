@@ -49,6 +49,36 @@ async function assertImages(page, name, mobile) {
 
 async function clickRow(page, selector) { await page.locator(`label.option-row:has(${selector})`).click(); }
 
+async function assertDedicatedVisuals(page, name) {
+  const checks = [
+    ['[data-page="faq"]', "faq", "faq-preview.webp"],
+    ['[data-page="testimonials"]', "reviews", "reviews-preview.webp"],
+    ['[data-page="team"]', "staff", "staff-preview.webp"],
+    ['[data-page="services"]', "services", "services-preview.webp"],
+    ['[data-menu-tier="image"]', "menu", "menu-preview.webp"],
+    ['[data-page="careers"]', "careers", "careers-preview.webp"],
+    ['[data-page="donations"]', "donations", "donations-preview.webp"],
+    ['[data-page="courses"]', "courses", "courses-preview.webp"],
+    ['label.option-row:has([data-tier="reviews"][value="manual"])', "reviews", "reviews-preview.webp"],
+    ['label.option-row:has([data-tier="multilingual"][value="3"])', "multilingual", "multilingual-preview.webp"],
+    ['label.option-row:has([data-toggle="loyalty"])', "loyalty", "loyalty-preview.webp"],
+    ['label.option-row:has([data-toggle="giftCards"])', "giftCards", "gift-cards-preview.webp"],
+    ['label.option-row:has([data-toggle="digitalDownloads"])', "digitalDownloads", "digital-downloads-preview.webp"],
+    ['label.option-row:has([data-toggle="automatedEmails"])', "emailAutomation", "email-automation-preview.webp"],
+    ['label.option-row:has([data-tier="communityForms"][value="standard"])', "communityForms", "community-forms-preview.webp"],
+  ];
+  for (const [selector, key, filename] of checks) {
+    await page.locator(selector).click();
+    await page.waitForTimeout(240);
+    const active = await page.locator("#visual-stage [data-active-visual]").getAttribute("data-active-visual");
+    const image = await page.locator("#visual-stage img").evaluate((element) => ({ src: element.currentSrc, width: element.naturalWidth, height: element.naturalHeight }));
+    assert(active === key, `${name}: ${selector} activated ${active}, expected ${key}`);
+    assert(image.src.endsWith(filename) && image.width === 1920 && image.height === 1080, `${name}: ${key} did not load ${filename}`);
+  }
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForSelector("#estimate");
+}
+
 async function exercise(page, name) {
   await page.locator('[data-preset="smallBusiness"]').click();
   const preset = await page.evaluate(() => ({ pages: document.querySelectorAll("[data-page].is-selected").length, contact: document.querySelector('[data-toggle="contactForm"]')?.checked, total: document.querySelector("#bar-total")?.textContent.trim(), hosting: window.__CONFIGURATOR_STATE__.hosting }));
@@ -96,6 +126,7 @@ async function smoke(url, scenario, viewport, full = false, reducedMotion = "no-
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); }); page.on("pageerror", (error) => errors.push(error.message));
   const response = await page.goto(url.href, { waitUntil: "networkidle" }); assert(response?.ok(), `${name}: page returned ${response?.status()}`); await page.waitForSelector("#estimate");
   await assertStructure(page, name); await assertImages(page, name, viewport.width <= 820); await noOverflow(page, name, "initial render");
+  if (full) await assertDedicatedVisuals(page, name);
   let code = ""; if (full) code = await exercise(page, name);
   assert(errors.length === 0, `${name}: browser errors: ${errors.join(" | ")}`);
   const output = { target: url.href, scenario, viewport, reducedMotion, total: (await page.locator("#bar-total").textContent()).trim() };

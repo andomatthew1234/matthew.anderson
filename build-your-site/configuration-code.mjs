@@ -4,7 +4,7 @@ import {
   calculateEstimate,
   resolveDependencies,
   serialisableState,
-} from "./configurator-data.mjs";
+} from "./configurator-data.mjs?v=6";
 
 const MAX_CODE_LENGTH = 200_000;
 

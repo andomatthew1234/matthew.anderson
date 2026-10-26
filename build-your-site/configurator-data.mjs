@@ -99,6 +99,20 @@ export const VISUAL_CONFIG = Object.freeze({
   social: { label: "Social media accounts", src: "../assets/configurator/social-preview.webp" },
   domainAssistance: { label: "Domain & hosting assistance", src: "../assets/configurator/hosting-preview.webp" },
   hosting: { label: "Hosting & infrastructure", src: "../assets/configurator/hosting-preview.webp" },
+  faq: { label: "FAQ page", src: "../assets/configurator/faq-preview.webp" },
+  reviews: { label: "Reviews & testimonials", src: "../assets/configurator/reviews-preview.webp" },
+  staff: { label: "Team & staff", src: "../assets/configurator/staff-preview.webp" },
+  services: { label: "Services & pricing", src: "../assets/configurator/services-preview.webp" },
+  menu: { label: "Restaurant menu", src: "../assets/configurator/menu-preview.webp" },
+  careers: { label: "Careers & jobs", src: "../assets/configurator/careers-preview.webp" },
+  donations: { label: "Donations & fundraising", src: "../assets/configurator/donations-preview.webp" },
+  courses: { label: "Online courses", src: "../assets/configurator/courses-preview.webp" },
+  multilingual: { label: "Multilingual website", src: "../assets/configurator/multilingual-preview.webp" },
+  loyalty: { label: "Loyalty points & rewards", src: "../assets/configurator/loyalty-preview.webp" },
+  giftCards: { label: "Gift cards", src: "../assets/configurator/gift-cards-preview.webp" },
+  digitalDownloads: { label: "Digital downloads", src: "../assets/configurator/digital-downloads-preview.webp" },
+  emailAutomation: { label: "Email builder & automated emails", src: "../assets/configurator/email-automation-preview.webp" },
+  communityForms: { label: "Polls & community forms", src: "../assets/configurator/community-forms-preview.webp" },
 });
 
 const basePages = () => Object.fromEntries(PAGE_ORDER.map((id) => [id, id === "home"]));

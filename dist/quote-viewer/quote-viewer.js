@@ -1,5 +1,5 @@
-import { decodeConfiguration } from "../build-your-site/configuration-code.mjs?v=5";
-import { formatPrice } from "../build-your-site/configurator-data.mjs?v=5";
+import { decodeConfiguration } from "../build-your-site/configuration-code.mjs?v=6";
+import { formatPrice } from "../build-your-site/configurator-data.mjs?v=6";
 
 const input = document.querySelector("[data-viewer-code]");
 const status = document.querySelector("[data-viewer-status]");
