@@ -300,6 +300,7 @@ button {
   place-items: center;
   border: 1px solid var(--line-strong);
   border-radius: 50%;
+  color: transparent;
   font-size: 0.85rem;
   transform: scale(0.88);
   transition: transform 220ms var(--ease-out);
