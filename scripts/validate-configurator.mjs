@@ -2,212 +2,113 @@ import { chromium } from "file:///C:/Users/muman/.cache/codex-runtimes/codex-pri
 
 const DEFAULT_ORIGIN = "http://127.0.0.1:48621/";
 const argumentsAsUrls = process.argv.slice(2).filter((argument) => !argument.startsWith("--"));
-const targetUrls = argumentsAsUrls.length
-  ? argumentsAsUrls.map((argument) => new URL(argument))
-  : [new URL("build-your-site/", DEFAULT_ORIGIN), new URL("dist/build-your-site/", DEFAULT_ORIGIN)];
-
+const targetUrls = argumentsAsUrls.length ? argumentsAsUrls.map((argument) => new URL(argument)) : [new URL("build-your-site/", DEFAULT_ORIGIN), new URL("dist/build-your-site/", DEFAULT_ORIGIN)];
 const browser = await chromium.launch({ headless: true });
+const assert = (condition, message) => { if (!condition) throw new Error(message); };
+const expectedSections = ["pages", "selling", "customers", "managing", "growth", "advanced", "finishing", "hosting", "estimate"];
 
-const assert = (condition, message) => {
-  if (!condition) throw new Error(message);
-};
-
-const expectedSections = ["pages", "selling", "customers", "managing", "growth", "finishing", "hosting", "estimate"];
-
-function option(page, selector) {
-  return page.locator(`label.option-row:has(${selector})`);
+async function noOverflow(page, name, stage) {
+  const size = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth }));
+  assert(size.document === size.viewport, `${name}: horizontal overflow during ${stage} (${size.document}px > ${size.viewport}px)`);
 }
 
-async function assertNoOverflow(page, name, stage) {
-  const dimensions = await page.evaluate(() => ({
-    documentWidth: document.documentElement.scrollWidth,
-    viewportWidth: document.documentElement.clientWidth,
+async function assertStructure(page, name) {
+  const result = await page.evaluate(() => ({
+    sections: Array.from(document.querySelectorAll(".config-section"), (section) => section.id), presets: document.querySelectorAll("[data-preset]").length,
+    oldPackages: document.querySelectorAll('[data-tier="pages"], [data-add-extra], [data-extra-name]').length, pages: document.querySelectorAll("[data-page]").length,
+    homeDisabled: document.querySelector('[data-page="home"]')?.disabled, logo: document.querySelector(".wordmark-logo")?.naturalWidth,
+    startHeading: document.querySelector("#preset-title")?.textContent.trim(),
   }));
-  assert(
-    dimensions.documentWidth === dimensions.viewportWidth,
-    `${name}: horizontal overflow during ${stage} (${dimensions.documentWidth}px > ${dimensions.viewportWidth}px)`,
-  );
+  assert(JSON.stringify(result.sections) === JSON.stringify(expectedSections), `${name}: section order is ${result.sections.join(", ")}`);
+  assert(result.presets === 8, `${name}: expected eight presets, got ${result.presets}`);
+  assert(result.oldPackages === 0, `${name}: legacy page-package controls remain`);
+  assert(result.pages === 13 && result.homeDisabled, `${name}: direct page grid or required homepage is incorrect`);
+  assert(result.logo > 0, `${name}: logo failed to load`);
+  assert(result.startHeading === "Where would you like to start?", `${name}: preset heading is missing`);
 }
 
-async function assertContinuousStructure(page, name) {
-  const structure = await page.evaluate(() => ({
-    sections: Array.from(document.querySelectorAll(".config-section"), (section) => section.id),
-    wizardControls: document.querySelectorAll("[data-step-jump], #previous-step, #next-step, .step-progress").length,
-    forbiddenButtons: Array.from(document.querySelectorAll("button"), (button) => button.textContent.trim()).filter((text) =>
-      /^(?:continue|previous|add feature|choose package|confirm)$/i.test(text),
-    ),
-    logoLoaded: document.querySelector(".wordmark-logo")?.naturalWidth > 0,
-    intro: document.querySelector(".builder-intro__copy")?.textContent.replace(/\s+/g, " ").trim(),
-  }));
-
-  assert(
-    JSON.stringify(structure.sections) === JSON.stringify(expectedSections),
-    `${name}: expected eight continuous sections in order, got ${structure.sections.join(", ")}`,
-  );
-  assert(structure.wizardControls === 0, `${name}: legacy wizard controls are still present`);
-  assert(structure.forbiddenButtons.length === 0, `${name}: legacy multi-click controls remain: ${structure.forbiddenButtons.join(", ")}`);
-  assert(structure.logoLoaded, `${name}: wordmark logo did not load`);
-  assert(structure.intro?.includes("Make it yours."), `${name}: configurator introduction is missing`);
-
-  const positions = await page.locator(".config-section").evaluateAll((sections) =>
-    sections.map((section) => section.getBoundingClientRect().top + scrollY),
-  );
-  assert(
-    positions.every((position, index) => index === 0 || position > positions[index - 1]),
-    `${name}: configurator sections are not laid out as one continuous vertical flow`,
-  );
-}
-
-async function assertVisualBehaviour(page, name, mobile) {
-  const visualColumn = page.locator(".visual-column");
-  const mobileVisuals = page.locator(".mobile-visual");
-
+async function assertImages(page, name, mobile) {
+  await page.waitForTimeout(500);
+  const failures = await page.locator("[data-visual-image]").evaluateAll((images) => images.filter((image) => !image.hidden && image.naturalWidth === 0).map((image) => image.dataset.visualImage));
+  assert(failures.length === 0, `${name}: broken configurator images: ${failures.join(", ")}`);
   if (mobile) {
-    assert(!(await visualColumn.isVisible()), `${name}: desktop sticky visual should be hidden on mobile`);
-    assert((await mobileVisuals.count()) > 0, `${name}: mobile section visuals are missing`);
-    assert(await page.locator("#payments > .mobile-visual").isVisible(), `${name}: payment visual is not stacked above mobile controls`);
-
-    const mobileOrder = await page.locator("#payments").evaluate((group) => {
-      const visual = group.querySelector(":scope > .mobile-visual")?.getBoundingClientRect();
-      const options = group.querySelector(":scope > .option-stack")?.getBoundingClientRect();
-      return visual && options ? { visualBottom: visual.bottom, optionsTop: options.top } : null;
-    });
-    assert(mobileOrder && mobileOrder.visualBottom <= mobileOrder.optionsTop, `${name}: mobile visual does not precede its controls`);
+    assert(!(await page.locator(".visual-column").isVisible()), `${name}: desktop image column is visible on mobile`);
+    const ratio = await page.locator("#payments > .mobile-visual").evaluate((element) => { const box = element.getBoundingClientRect(); return box.width / box.height; });
+    assert(Math.abs(ratio - 16 / 9) < 0.02, `${name}: mobile image ratio is ${ratio}`);
   } else {
-    assert(await visualColumn.isVisible(), `${name}: desktop visual column is hidden`);
-    const position = await visualColumn.evaluate((element) => getComputedStyle(element).position);
-    assert(position === "sticky", `${name}: desktop visual column is not sticky (computed ${position})`);
-
-    await page.locator("#analytics").evaluate((element) => {
-      const target = scrollY + element.getBoundingClientRect().top - innerHeight * 0.4;
-      scrollTo({ top: target, behavior: "instant" });
+    const visual = await page.locator("#visual-stage").evaluate((element) => {
+      const box = element.getBoundingClientRect(); const inner = element.querySelector(".visual-stage__inner"); const placeholder = element.querySelector(".visual-placeholder"); const image = element.querySelector("img");
+      return { ratio: box.width / box.height, position: getComputedStyle(element.closest(".visual-column")).position, padding: getComputedStyle(inner).padding, border: getComputedStyle(placeholder).borderTopWidth, fit: getComputedStyle(image).objectFit, width: image.naturalWidth, height: image.naturalHeight };
     });
-    await page.waitForTimeout(350);
-    const activeVisual = await page.locator("#visual-stage [data-active-visual]").getAttribute("data-active-visual");
-    assert(activeVisual === "analytics", `${name}: observer did not activate analytics visual (got ${activeVisual})`);
+    assert(visual.position === "sticky", `${name}: visual column is not sticky`);
+    assert(Math.abs(visual.ratio - 16 / 9) < 0.02, `${name}: desktop image ratio is ${visual.ratio}`);
+    assert(visual.padding === "0px" && visual.border === "0px" && visual.fit === "cover", `${name}: image still has nested matting (${JSON.stringify(visual)})`);
+    assert(visual.width === 1920 && visual.height === 1080, `${name}: visual asset dimensions are ${visual.width}×${visual.height}`);
   }
-
-  const fallback = await page.locator(".visual-placeholder").first().evaluate((placeholder) => {
-    const image = placeholder.querySelector("img");
-    const label = placeholder.querySelector(".visual-placeholder__label")?.textContent.trim();
-    return {
-      label,
-      imageSafe: !image || image.hidden || image.naturalWidth > 0,
-      placeholderVisible: getComputedStyle(placeholder).display !== "none",
-    };
-  });
-  assert(fallback.placeholderVisible && fallback.label, `${name}: visual fallback is not present`);
-  assert(fallback.imageSafe, `${name}: visual fallback exposes a broken image`);
 }
 
-async function choose(page, selector) {
-  const row = option(page, selector);
-  await row.click();
-  assert(await page.locator(selector).isChecked(), `single-click selection failed for ${selector}`);
-  assert(await row.evaluate((element) => element.classList.contains("is-selected")), `selected state missing for ${selector}`);
+async function clickRow(page, selector) { await page.locator(`label.option-row:has(${selector})`).click(); }
+
+async function exercise(page, name) {
+  await page.locator('[data-preset="smallBusiness"]').click();
+  const preset = await page.evaluate(() => ({ pages: document.querySelectorAll("[data-page].is-selected").length, contact: document.querySelector('[data-toggle="contactForm"]')?.checked, total: document.querySelector("#bar-total")?.textContent.trim(), hosting: window.__CONFIGURATOR_STATE__.hosting }));
+  assert(preset.pages === 3 && preset.contact && preset.total === "$220–330 AUD" && preset.hosting === "firebase", `${name}: Small business preset is wrong: ${JSON.stringify(preset)}`);
+  await page.locator('[data-page="faq"]').click();
+  await page.locator("[data-custom-page-count]").fill("2"); await page.locator("[data-custom-page-count]").press("Tab");
+  await clickRow(page, '[data-toggle="loyalty"]');
+  const dependencies = await page.evaluate(() => ({ accounts: document.querySelector('[data-tier="accounts"][value="full"]')?.checked, checkout: document.querySelector('[data-tier="payments"][value="professional"]')?.checked, staticDisabled: document.querySelector('[data-tier="hosting"][value="static"]')?.disabled, dashboard: window.__CONFIGURATOR_ESTIMATE__.dashboardDependencies }));
+  assert(dependencies.accounts && dependencies.checkout && dependencies.staticDisabled, `${name}: Loyalty dependencies were not applied`);
+  assert(dependencies.dashboard.includes("loyalty") && dependencies.dashboard.includes("fullAccounts"), `${name}: Loyalty dashboard dependencies are incomplete`);
+  await clickRow(page, '[data-tier="multilingual"][value="more"]');
+  await page.locator("[data-language-count]").fill("10"); await page.locator("[data-language-count]").press("Tab");
+  await clickRow(page, '[data-tier="translation"][value="ai"]');
+  await noOverflow(page, name, "configured state");
+  await page.locator("[data-scroll-estimate]").click(); await page.locator("[data-generate]").click();
+  assert(await page.locator(".preparing-panel").isVisible(), `${name}: two-second preparation state did not appear`);
+  assert(!(await page.locator("#generated-quote").count()), `${name}: quote appeared before preparation completed`);
+  await page.waitForTimeout(2100);
+  assert(await page.locator("#generated-quote").isVisible(), `${name}: quote did not appear after preparation`);
+  assert((await page.locator("#generated-quote").textContent()).includes("automatically included"), `${name}: quote does not identify automatic dependencies`);
+  await page.locator("[data-continue]").click();
+  const code = await page.locator("[data-generated-code]").inputValue();
+  assert(code.startsWith("BBM1-") && code.length > 1000, `${name}: deterministic code was not generated in full`);
+  await page.locator("#code-recovery summary").click(); await page.locator("[data-recovery-code]").fill(code); await page.locator("[data-recover]").click();
+  assert((await page.locator("#generated-quote").textContent()).includes("Recovered historical estimate"), `${name}: recovered quote is not labelled historical`);
+  assert((await page.locator("#generated-quote").textContent()).includes("has not been recalculated"), `${name}: historical-price disclosure is missing`);
+  return code;
 }
 
-async function exerciseConfigurator(page, name) {
-  // Custom-page choices must survive temporarily switching back to a preset.
-  await choose(page, '[data-tier="pages"][value="custom"]');
-  await page.locator('[data-page="about"]').uncheck();
-  await page.locator("[data-add-extra]").click();
-  await page.locator("[data-extra-name]").fill("Services");
-  await choose(page, '[data-tier="pages"][value="home"]');
-  await choose(page, '[data-tier="pages"][value="custom"]');
-  assert(!(await page.locator('[data-page="about"]').isChecked()), `${name}: custom About choice was not preserved`);
-  assert((await page.locator("[data-extra-name]").inputValue()) === "Services", `${name}: custom page name was not preserved`);
-
-  // A row is the control: one click updates selection, dashboard dependencies, hosting and totals.
-  await choose(page, '[data-toggle="contactForm"]');
-  const contactDependency = await page.evaluate(() => ({
-    staticDisabled: document.querySelector('[data-tier="hosting"][value="static"]')?.disabled,
-    firebaseChecked: document.querySelector('[data-tier="hosting"][value="firebase"]')?.checked,
-    dashboardSelected: document.querySelector('[data-toggle="dashboardExplicit"]')?.checked,
-    dashboardDisabled: document.querySelector('[data-toggle="dashboardExplicit"]')?.disabled,
-    total: document.querySelector("#bar-total")?.textContent.trim(),
-    summary: document.querySelector("#bar-selection")?.textContent.trim(),
-    notice: document.querySelector("#dependency-note")?.textContent.trim(),
-  }));
-  assert(contactDependency.staticDisabled, `${name}: Static hosting remains available for a contact form`);
-  assert(contactDependency.firebaseChecked, `${name}: contact form did not select Firebase`);
-  assert(contactDependency.dashboardSelected && contactDependency.dashboardDisabled, `${name}: required dashboard was not locked in`);
-  assert(contactDependency.total === "$230–340 AUD", `${name}: live total is ${contactDependency.total}, expected $230–340 AUD`);
-  assert(contactDependency.summary === "3 pages · 2 features", `${name}: live summary is incorrect: ${contactDependency.summary}`);
-  assert(/Interactive hosting selected/i.test(contactDependency.notice), `${name}: automatic hosting change was not announced`);
-
-  // Member-only RSVP must add accounts, and removing it must remove only the auto-added account.
-  await choose(page, '[data-tier="rsvp"][value="member"]');
-  const memberDependency = await page.evaluate(() => ({
-    standardChecked: document.querySelector('[data-tier="accounts"][value="standard"]')?.checked,
-    noneDisabled: document.querySelector('[data-tier="accounts"][value="none"]')?.disabled,
-    autoAdded: window.__CONFIGURATOR_STATE__?.accountsAutoAdded,
-  }));
-  assert(memberDependency.standardChecked && memberDependency.noneDisabled && memberDependency.autoAdded, `${name}: member RSVP did not add and require Standard accounts`);
-  await choose(page, '[data-tier="rsvp"][value="none"]');
-  assert(await page.locator('[data-tier="accounts"][value="none"]').isChecked(), `${name}: auto-added accounts remained after member RSVP was removed`);
-
-  // Return to the established deterministic $230–340 scenario and generate inline.
-  assert((await page.locator("#bar-total").textContent()).trim() === "$230–340 AUD", `${name}: dependency reversal changed the established total`);
-  await page.locator("[data-scroll-estimate]").click();
-  await page.waitForTimeout(350);
-  await page.locator("[data-generate]").click();
-  const quote = await page.evaluate(() => ({
-    total: document.querySelector(".quote-total")?.textContent.replace(/\s+/g, " ").trim(),
-    text: document.querySelector("#generated-quote")?.textContent.replace(/\s+/g, " ").trim(),
-    focused: document.activeElement?.id,
-    dashboardLines: Array.from(document.querySelectorAll(".quote-line"), (line) => line.textContent).filter((text) => /dashboard/i.test(text)).length,
-  }));
-  assert(quote.total?.includes("$230–340 AUD"), `${name}: generated quote total is incorrect: ${quote.total}`);
-  assert(quote.text?.includes("Basic SEO"), `${name}: included Basic SEO is missing from the quote`);
-  assert(quote.text?.includes("Firebase"), `${name}: hosting is missing from the quote`);
-  assert(quote.dashboardLines === 2, `${name}: expected dashboard and integration quote lines, got ${quote.dashboardLines}`);
-  assert(quote.focused === "generated-quote", `${name}: generated quote did not receive focus`);
-  await assertNoOverflow(page, name, "generated estimate");
+async function validateViewer(baseUrl, code, name) {
+  const url = new URL(baseUrl.pathname.replace(/build-your-site\/$/u, "quote-viewer/"), baseUrl.origin);
+  const page = await browser.newPage({ viewport: { width: 1100, height: 800 } }); const errors = [];
+  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); }); page.on("pageerror", (error) => errors.push(error.message));
+  const response = await page.goto(url.href, { waitUntil: "networkidle" }); assert(response?.ok(), `${name}: quote viewer returned ${response?.status()}`);
+  await page.locator("[data-viewer-code]").fill(code); await page.locator("[data-decode]").click();
+  assert(await page.locator("#decoded-quote").isVisible(), `${name}: quote viewer did not decode valid code`);
+  assert((await page.locator("#decoded-quote").textContent()).includes("Recovered historical estimate"), `${name}: viewer historical label is missing`);
+  await page.locator("[data-viewer-code]").fill(`${code.slice(0, -1)}0`); await page.locator("[data-decode]").click();
+  assert((await page.locator("[data-viewer-status]").textContent()).match(/corrupt|invalid|incomplete/i), `${name}: viewer did not reject corrupted code`);
+  await noOverflow(page, name, "quote viewer"); assert(errors.length === 0, `${name}: quote viewer browser errors: ${errors.join(" | ")}`); await page.close();
 }
 
-async function smoke(url, scenario, viewport, reducedMotion = "no-preference") {
-  const name = `${url.pathname} · ${scenario}`;
-  const context = await browser.newContext({ viewport, reducedMotion });
-  const page = await context.newPage();
-  const errors = [];
-  page.on("console", (message) => {
-    const source = message.location().url || "";
-    const expectedMissingPlaceholderAsset = source.includes("/assets/configurator/");
-    if (message.type() === "error" && !expectedMissingPlaceholderAsset) errors.push(message.text());
-  });
-  page.on("pageerror", (error) => errors.push(error.message));
-
-  const response = await page.goto(url.href, { waitUntil: "networkidle" });
-  assert(response?.ok(), `${name}: page returned ${response?.status() ?? "no response"}`);
-  await page.waitForSelector("#estimate");
-
-  await assertContinuousStructure(page, name);
-  await assertNoOverflow(page, name, "initial render");
-  await assertVisualBehaviour(page, name, viewport.width <= 820);
-  await exerciseConfigurator(page, name);
+async function smoke(url, scenario, viewport, full = false, reducedMotion = "no-preference") {
+  const name = `${url.pathname} · ${scenario}`; const context = await browser.newContext({ viewport, reducedMotion }); const page = await context.newPage(); const errors = [];
+  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); }); page.on("pageerror", (error) => errors.push(error.message));
+  const response = await page.goto(url.href, { waitUntil: "networkidle" }); assert(response?.ok(), `${name}: page returned ${response?.status()}`); await page.waitForSelector("#estimate");
+  await assertStructure(page, name); await assertImages(page, name, viewport.width <= 820); await noOverflow(page, name, "initial render");
+  let code = ""; if (full) code = await exercise(page, name);
   assert(errors.length === 0, `${name}: browser errors: ${errors.join(" | ")}`);
-
-  const result = {
-    target: url.href,
-    scenario,
-    viewport,
-    reducedMotion,
-    total: (await page.locator(".quote-total").textContent()).replace(/\s+/g, " ").trim(),
-  };
-  await context.close();
-  return result;
+  const output = { target: url.href, scenario, viewport, reducedMotion, total: (await page.locator("#bar-total").textContent()).trim() };
+  await context.close(); return { output, code };
 }
 
 try {
   const results = [];
   for (const url of targetUrls) {
-    results.push(await smoke(url, "desktop", { width: 1440, height: 900 }));
-    results.push(await smoke(url, "tablet", { width: 1024, height: 768 }));
-    results.push(await smoke(url, "mobile", { width: 390, height: 844 }));
-    results.push(await smoke(url, "reduced-motion", { width: 1440, height: 900 }, "reduce"));
+    const desktop = await smoke(url, "desktop", { width: 1440, height: 900 }, true); results.push(desktop.output); await validateViewer(url, desktop.code, `${url.pathname} · viewer`);
+    results.push((await smoke(url, "tablet", { width: 1024, height: 768 })).output);
+    results.push((await smoke(url, "mobile", { width: 390, height: 844 })).output);
+    results.push((await smoke(url, "reduced-motion", { width: 1440, height: 900 }, false, "reduce")).output);
   }
   console.log(JSON.stringify({ ok: true, targets: targetUrls.map((url) => url.href), results }, null, 2));
-} finally {
-  await browser.close();
-}
+} finally { await browser.close(); }

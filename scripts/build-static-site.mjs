@@ -22,6 +22,7 @@ const entries = [
   "terms",
   "confirmation",
   "build-your-site",
+  "quote-viewer",
 ];
 
 await rm(outputDirectory, { recursive: true, force: true });
