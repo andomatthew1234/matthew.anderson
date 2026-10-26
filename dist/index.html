@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Matthew Anderson designs and builds thoughtful websites in Melbourne, Australia."
+    />
+    <meta name="theme-color" content="#f3efe6" />
+    <title>Matthew Anderson — Web Designer &amp; Developer</title>
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./script.js" defer></script>
+    <script src="./vendor/gsap/gsap.min.js" defer></script>
+    <script src="./vendor/gsap/ScrollTrigger.min.js" defer></script>
+    <script src="./portfolio-projects.js" defer></script>
+    <script src="./portfolio-gallery.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <div class="page-shell">
+      <header class="site-header" aria-label="Primary navigation">
+        <a class="wordmark" href="#main-content" aria-label="builtbymatthew, home">
+          <img class="wordmark-logo" src="./favicon.png" alt="" aria-hidden="true" />
+          <span>builtbymatthew</span>
+        </a>
+
+        <nav class="nav-links" aria-label="Main menu">
+          <a href="#work">Work</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+        </nav>
+      </header>
+
+      <main class="site-main" id="main-content">
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <h1 class="hero-title" id="hero-title">
+              <span class="title-mask"><span class="title-line">Websites, built</span></span>
+              <span class="title-mask"><em class="title-line title-line--second">properly.</em></span>
+            </h1>
+
+            <div class="supporting-content">
+              <p class="intro">
+                I design, build and implement websites for businesses, organisations, and people
+                who want something worth putting online.
+              </p>
+
+              <div class="actions" aria-label="Next steps">
+                <div class="work-menu-wrap">
+                  <button
+                    class="work-link"
+                    type="button"
+                    aria-expanded="false"
+                    aria-haspopup="menu"
+                    aria-controls="work-menu"
+                  >
+                    <span>View my work</span>
+                    <span class="work-arrow" aria-hidden="true">↘</span>
+                  </button>
+
+                  <div
+                    class="work-menu"
+                    id="work-menu"
+                    role="menu"
+                    aria-label="View my work"
+                    aria-hidden="true"
+                    inert
+                  >
+                    <a class="work-option" href="#work" role="menuitem">
+                      <span>View featured sites</span>
+                      <span class="option-arrow" aria-hidden="true">↓</span>
+                    </a>
+
+                    <a
+                      class="work-option"
+                      href="https://hsworldtravel.wixstudio.com/main/projects"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      role="menuitem"
+                    >
+                      <span>View full portfolio</span>
+                      <span class="option-arrow" aria-hidden="true">↗</span>
+                    </a>
+                  </div>
+                </div>
+
+                <a
+                  class="project-link"
+                  href="mailto:matthew@andomail.com?subject=Start%20a%20new%20website"
+                >
+                  <span class="project-fill" aria-hidden="true"></span>
+                  <span class="project-label">Start a project</span>
+                  <span class="project-arrows" aria-hidden="true">
+                    <span class="arrow arrow--first">→</span>
+                    <span class="arrow arrow--second">→</span>
+                  </span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-meta">
+            <a class="terms-link" href="/terms/">Terms &amp; Conditions</a>
+            <p class="location">Melbourne, Australia <span aria-hidden="true">—</span> 2026</p>
+          </div>
+
+          <span id="about" class="anchor-target" aria-hidden="true"></span>
+          <span id="contact" class="anchor-target" aria-hidden="true"></span>
+        </section>
+
+        <section class="portfolio-section" id="work" aria-labelledby="portfolio-title">
+          <div class="portfolio-stage">
+            <div class="portfolio-heading-group">
+              <div>
+                <p class="portfolio-kicker">Selected work</p>
+                <h2 class="portfolio-title" id="portfolio-title">Don't take my word for it.</h2>
+                <p class="portfolio-intro">
+                  Take a look at some of the websites I built.
+                </p>
+              </div>
+
+              <div class="portfolio-nav" aria-label="Portfolio gallery controls">
+                <div class="portfolio-progress" aria-hidden="true">
+                  <span class="portfolio-progress-line is-active"></span>
+                  <span class="portfolio-progress-line"></span>
+                  <span class="portfolio-progress-line"></span>
+                  <span class="portfolio-progress-line"></span>
+                </div>
+                <span class="portfolio-count">01 / 04</span>
+                <div class="portfolio-arrows">
+                  <button
+                    class="portfolio-arrow portfolio-arrow--previous"
+                    type="button"
+                    aria-label="Previous project"
+                    disabled
+                  >
+                    <span aria-hidden="true">←</span>
+                  </button>
+                  <button
+                    class="portfolio-arrow portfolio-arrow--next"
+                    type="button"
+                    aria-label="Next project"
+                  >
+                    <span aria-hidden="true">→</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="portfolio-viewport" tabindex="0" aria-label="Featured website projects">
+              <div class="portfolio-track"></div>
+            </div>
+          </div>
+
+          <noscript>
+            <ul class="portfolio-fallback-list">
+              <li><a href="https://doxatreasury.com">Doxa Treasury</a></li>
+              <li>
+                <a href="https://andomatthew1234.github.io/Chromecraft">
+                  Chromecraft Browser Website
+                </a>
+              </li>
+              <li><a href="https://sydneybushdances.com">Sydney Bush Dances</a></li>
+              <li><a href="https://kingroyaltyeggs.com">King Royalty Eggs</a></li>
+            </ul>
+          </noscript>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

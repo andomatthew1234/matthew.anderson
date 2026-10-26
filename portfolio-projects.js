@@ -1,0 +1,38 @@
+window.PORTFOLIO_PROJECTS = Object.freeze([
+  Object.freeze({
+    name: "Doxa Treasury",
+    category: "Church history collection",
+    url: "https://doxatreasury.com",
+    image: "./assets/projects/doxa-treasury.webp",
+    alt: "Doxa Treasury website homepage showing an architectural church interior",
+    width: 1800,
+    height: 1200,
+  }),
+  Object.freeze({
+    name: "Chromecraft Browser Website",
+    category: "Browser product website",
+    url: "https://andomatthew1234.github.io/Chromecraft",
+    image: "./assets/projects/chromecraft.webp",
+    alt: "Chromecraft browser website homepage",
+    width: 1800,
+    height: 1200,
+  }),
+  Object.freeze({
+    name: "Sydney Bush Dances",
+    category: "Community & events",
+    url: "https://sydneybushdances.com",
+    image: "./assets/projects/sydney-bush-dances.webp",
+    alt: "Sydney Bush Dances website homepage",
+    width: 1800,
+    height: 1200,
+  }),
+  Object.freeze({
+    name: "King Royalty Eggs",
+    category: "Farm & produce",
+    url: "https://kingroyaltyeggs.com",
+    image: "./assets/projects/king-royalty-eggs.webp",
+    alt: "King Royalty Eggs website homepage",
+    width: 1800,
+    height: 1200,
+  }),
+]);
