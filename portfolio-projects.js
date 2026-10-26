@@ -30,7 +30,7 @@ window.PORTFOLIO_PROJECTS = Object.freeze([
     name: "King Royalty Eggs",
     category: "Farm & produce",
     url: "https://kingroyaltyeggs.com",
-    image: "./assets/projects/king-royalty-eggs.webp",
+    image: "./assets/projects/king-royalty-eggs.jpg",
     alt: "King Royalty Eggs website homepage",
     width: 1800,
     height: 1200,

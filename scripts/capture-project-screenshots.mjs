@@ -7,10 +7,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const outputDirectory = path.resolve(here, "../assets/projects");
 
 const allProjects = [
-  { slug: "doxa-treasury", url: "https://doxatreasury.com" },
-  { slug: "chromecraft", url: "https://andomatthew1234.github.io/Chromecraft" },
-  { slug: "sydney-bush-dances", url: "https://sydneybushdances.com" },
-  { slug: "king-royalty-eggs", url: "https://kingroyaltyeggs.com" },
+  { slug: "doxa-treasury", url: "https://doxatreasury.com", type: "webp", quality: 88 },
+  { slug: "chromecraft", url: "https://andomatthew1234.github.io/Chromecraft", type: "webp", quality: 88 },
+  { slug: "sydney-bush-dances", url: "https://sydneybushdances.com", type: "webp", quality: 88 },
+  { slug: "king-royalty-eggs", url: "https://kingroyaltyeggs.com", type: "jpeg", quality: 92 },
 ];
 
 const requestedSlugs = new Set(process.argv.slice(2));
@@ -31,7 +31,8 @@ const context = await browser.newContext({
 
 for (const project of projects) {
   const page = await context.newPage();
-  const destination = path.join(outputDirectory, `${project.slug}.webp`);
+  const extension = project.type === "jpeg" ? "jpg" : project.type;
+  const destination = path.join(outputDirectory, `${project.slug}.${extension}`);
 
   try {
     const response = await page.goto(project.url, {
@@ -49,8 +50,8 @@ for (const project of projects) {
     });
     await page.screenshot({
       path: destination,
-      type: "webp",
-      quality: 88,
+      type: project.type,
+      quality: project.quality,
       animations: "disabled",
     });
     console.log(`Captured ${project.url} -> ${destination}`);
