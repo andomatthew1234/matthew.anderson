@@ -95,9 +95,25 @@ export const PRICE_CONFIG = Object.freeze({
   dashboard: { base: [60, 60], integration: [10, 10] },
 });
 
+// Replace these files when final artwork is ready. The UI preloads each path and
+// keeps a polished labelled placeholder in place whenever an asset is unavailable.
+export const VISUAL_CONFIG = Object.freeze({
+  pages: { label: "Your website's pages", src: "../assets/configurator/pages-preview.webp" },
+  payments: { label: "Payments & checkout", src: "../assets/configurator/payments-preview.webp" },
+  bookings: { label: "Online bookings", src: "../assets/configurator/bookings-preview.webp" },
+  events: { label: "Events & RSVP", src: "../assets/configurator/events-preview.webp" },
+  accounts: { label: "Customer accounts", src: "../assets/configurator/accounts-preview.webp" },
+  contact: { label: "Customer communication", src: "../assets/configurator/contact-preview.webp" },
+  blog: { label: "Blog & news", src: "../assets/configurator/blog-preview.webp" },
+  cms: { label: "Website editor", src: "../assets/configurator/cms-preview.webp" },
+  analytics: { label: "Analytics & insights", src: "../assets/configurator/analytics-preview.webp" },
+  seo: { label: "Search visibility", src: "../assets/configurator/seo-preview.webp" },
+  finishing: { label: "Finishing touches", src: "../assets/configurator/finishing-preview.webp" },
+  hosting: { label: "Hosting & infrastructure", src: "../assets/configurator/hosting-preview.webp" },
+});
+
 export function createInitialState() {
   return {
-    step: 0,
     pagesMode: "preset",
     preset: "contact",
     customPages: { home: true, about: true, contact: true, store: false, gallery: false, events: false },

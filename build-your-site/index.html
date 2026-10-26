@@ -11,11 +11,11 @@
     <title>Build Your Site — BuiltByMatthew</title>
     <link rel="icon" type="image/png" href="../favicon.png" />
     <link rel="stylesheet" href="../styles.css" />
-    <link rel="stylesheet" href="./configurator.css?v=2" />
-    <script type="module" src="./configurator.js"></script>
+    <link rel="stylesheet" href="./configurator.css?v=3" />
+    <script type="module" src="./configurator.js?v=3"></script>
   </head>
   <body>
-    <a class="skip-link" href="#configurator">Skip to configurator</a>
+    <a class="skip-link" href="#configuration">Skip to configurator</a>
 
     <div class="builder-shell">
       <header class="builder-header" aria-label="Primary navigation">
@@ -28,41 +28,39 @@
         </a>
       </header>
 
-      <main id="configurator" class="builder-main">
-        <div class="builder-intro">
-          <p class="eyebrow">Build your site</p>
-          <h1>Make it yours.</h1>
-          <p>Choose what you need. We’ll keep the details clear and calculate the estimate.</p>
-        </div>
+      <main class="builder-main">
+        <section class="builder-intro" aria-labelledby="builder-title">
+          <div class="builder-intro__copy">
+            <p class="eyebrow">Build your site</p>
+            <h1 id="builder-title">Make it yours.</h1>
+            <p>Choose what you need. We'll keep the details clear and calculate the estimate.</p>
+          </div>
 
-        <nav class="step-progress" aria-label="Configurator progress">
-          <ol>
-            <li><button type="button" data-step-jump="0"><span>01</span> Pages</button></li>
-            <li><button type="button" data-step-jump="1"><span>02</span> Features</button></li>
-            <li><button type="button" data-step-jump="2"><span>03</span> Finishing touches</button></li>
-            <li><button type="button" data-step-jump="3"><span>04</span> Your estimate</button></li>
-          </ol>
-          <span class="step-progress__line" aria-hidden="true"><span></span></span>
-        </nav>
+          <div class="intro-showcase" aria-labelledby="showcase-title">
+            <div class="intro-showcase__frame" aria-hidden="true">
+              <span class="mock-window-bar"><i></i><i></i><i></i></span>
+              <span class="mock-site-name">built around you</span>
+              <span class="mock-heading"></span>
+              <span class="mock-heading mock-heading--short"></span>
+              <span class="mock-copy"></span>
+              <span class="mock-button"></span>
+            </div>
+            <div class="intro-showcase__copy">
+              <p class="eyebrow">Your website</p>
+              <h2 id="showcase-title">Built around you.</h2>
+              <p>From a simple homepage to a complete online business, choose exactly what your website needs.</p>
+              <a href="#configuration">Start configuring <span aria-hidden="true">↓</span></a>
+            </div>
+          </div>
+        </section>
 
-        <div class="builder-layout">
-          <section class="step-panel" id="step-panel" aria-live="polite"></section>
-
-          <aside class="summary" aria-labelledby="summary-title">
-            <button class="summary__toggle" type="button" aria-expanded="true" aria-controls="summary-content">
-              <span><span class="eyebrow">Live summary</span><strong id="summary-title">Your website is coming together.</strong></span>
-              <span class="summary__toggle-icon" aria-hidden="true">−</span>
-            </button>
-            <div id="summary-content" class="summary__content"></div>
+        <section class="configuration" id="configuration" aria-label="Website configuration">
+          <aside class="visual-column" aria-label="Configuration preview">
+            <div class="visual-stage" id="visual-stage" aria-live="polite"></div>
           </aside>
-        </div>
-
-        <div class="dependency-note" id="dependency-note" role="status" aria-live="polite" hidden></div>
-
-        <div class="builder-actions">
-          <button class="text-button" id="previous-step" type="button">← Previous</button>
-          <button class="primary-button" id="next-step" type="button">Continue <span aria-hidden="true">→</span></button>
-        </div>
+          <div class="configuration-flow" id="configuration-flow"></div>
+        </section>
+        <div id="estimate-container"></div>
       </main>
 
       <footer class="builder-footer">
@@ -71,6 +69,15 @@
       </footer>
     </div>
 
+    <aside class="estimate-bar" aria-label="Current configuration summary">
+      <div class="estimate-bar__inner">
+        <p><strong>Your website</strong><span id="bar-selection">3 pages · 0 features</span></p>
+        <p class="estimate-bar__price"><span>Estimated total</span><strong id="bar-total">$105–170 AUD</strong></p>
+        <button type="button" data-scroll-estimate>View summary <span aria-hidden="true">↓</span></button>
+      </div>
+    </aside>
+
+    <div class="dependency-note" id="dependency-note" role="status" aria-live="polite" hidden></div>
     <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
   </body>
 </html>
