@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { statSync } from "node:fs";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import {
+  VISUAL_CONFIG,
   calculateEstimate,
   createInitialState,
   getDashboardDependencies,
@@ -9,6 +12,15 @@ import {
 } from "../build-your-site/configurator-data.mjs";
 
 const total = (state) => calculateEstimate(state).totals;
+
+test("every configurator visual points to a production asset", () => {
+  const configuratorRoot = new URL("../build-your-site/", import.meta.url);
+  assert.equal(Object.keys(VISUAL_CONFIG).length, 18);
+  for (const [key, visual] of Object.entries(VISUAL_CONFIG)) {
+    const asset = fileURLToPath(new URL(visual.src, configuratorRoot));
+    assert.ok(statSync(asset).size > 5_000, `${key} visual is missing or unexpectedly small`);
+  }
+});
 
 test("preset prices use bundled ranges only", () => {
   const expected = { home: [50, 100], about: [75, 120], contact: [105, 170] };

@@ -9,7 +9,7 @@ import {
   getSelectedFeatureIds,
   normaliseState,
   requiresBackend,
-} from "./configurator-data.mjs";
+} from "./configurator-data.mjs?v=4";
 
 let state = createInitialState();
 let visualObserver;
@@ -75,9 +75,14 @@ function mobileVisual(key) {
 function hydrateVisualImages(root = document) {
   root.querySelectorAll("[data-visual-image]").forEach((image) => {
     if (!loadedVisuals.has(image.dataset.visualImage)) return;
+    const reveal = () => {
+      image.classList.add("is-loaded");
+      image.closest(".visual-placeholder")?.classList.add("has-image");
+    };
+    image.addEventListener("load", reveal, { once: true });
     image.src = image.dataset.src;
     image.hidden = false;
-    image.addEventListener("load", () => image.classList.add("is-loaded"), { once: true });
+    if (image.complete && image.naturalWidth > 0) reveal();
   });
 }
 
@@ -194,8 +199,9 @@ function renderPagesSection() {
 }
 
 function renderSellingSection() {
+  const paymentsVisual = state.payments === "links" ? "paymentLinks" : "professionalPayments";
   const payments = groupShell({
-    id: "payments", visual: "payments", title: "Payments. How would you like customers to pay?", intro: "Choose a simple hosted payment link or a complete multi-product checkout.",
+    id: "payments", visual: paymentsVisual, title: "Payments. How would you like customers to pay?", intro: "Choose a simple hosted payment link or a complete multi-product checkout.",
     content: `<div class="option-stack">${optionRow({ group: "payments", value: "none", selected: state.payments === "none", title: "No payments", description: "No payment functionality.", price: "Included" })}${optionRow({ group: "payments", value: "links", selected: state.payments === "links", title: "Payment links", description: "Secure links for products, services or donations.", price: "$20" })}${optionRow({ group: "payments", value: "professional", selected: state.payments === "professional", title: "Professional checkout", description: "Shopping cart, multiple products and flexible checkout.", price: "$90–180" })}</div>${compareBlock("payments", "Compare payment options", "<p><strong>Payment links</strong> are best for simple purchases and fixed-price services. <strong>Professional checkout</strong> suits stores with multiple products. Customer accounts are recommended, not required. Provider fees are separate.</p>")}`,
   });
   const bookings = groupShell({
@@ -206,7 +212,7 @@ function renderSellingSection() {
     id: "events", visual: "events", title: "Events. Let people register to attend.", intro: "Public registration can work without accounts; member-only events require login.",
     content: `<div class="option-stack">${optionRow({ group: "rsvp", value: "none", selected: state.rsvp === "none", title: "No RSVP", description: "A static events page can still be selected above.", price: "Included" })}${optionRow({ group: "rsvp", value: "public", selected: state.rsvp === "public", title: "Public RSVP", description: "Registration, attendee information and RSVP management.", price: "$40–80" })}${optionRow({ group: "rsvp", value: "member", selected: state.rsvp === "member", title: "Member-only RSVP", description: "Account-linked event registration for members.", price: "$40–80" })}</div>${compareBlock("rsvp", "Need help choosing?", "<p>Choose Public for ordinary events. Member-only RSVP adds compatible customer accounts so attendance can be linked securely to a login.</p>")}`,
   });
-  return sectionShell({ id: "selling", number: "02 · Selling & bookings", title: "Turn visits into action.", intro: "Take payments, accept bookings and manage event attendance.", visual: "payments", content: payments + bookings + events });
+  return sectionShell({ id: "selling", number: "02 · Selling & bookings", title: "Turn visits into action.", intro: "Take payments, accept bookings and manage event attendance.", visual: paymentsVisual, content: payments + bookings + events });
 }
 
 function renderCustomersSection() {
@@ -214,16 +220,24 @@ function renderCustomersSection() {
     id: "accounts", visual: "accounts", title: "Customer accounts. Choose the right level of access.", intro: "Let customers sign in, manage information and use account-linked services.",
     content: `<div class="option-stack">${optionRow({ group: "accounts", value: "none", selected: state.accounts === "none", title: "No accounts", description: "No customer login system.", price: "Included", disabled: state.rsvp === "member", reason: state.rsvp === "member" ? "Required by member-only RSVP." : "" })}${optionRow({ group: "accounts", value: "standard", selected: state.accounts === "standard", title: "Standard accounts", description: "Registration, login, password resets and profiles.", price: "$60–95" })}${optionRow({ group: "accounts", value: "full", selected: state.accounts === "full", title: "Full accounts suite", description: "Adds 2FA, enhanced security and admin user management.", price: "$120–200" })}</div>${compareBlock("accounts", "Compare account options", "<p><strong>Standard</strong> covers everyday customer access and profiles. <strong>Full</strong> adds two-factor authentication, deletion, enhanced controls and dashboard user management using established authentication services.</p>")}`,
   });
-  const communication = groupShell({
-    id: "communication", visual: "contact", title: "Communication. Make it easy to stay in touch.", intro: "Choose each service with one click. Dashboard costs are added automatically where required.",
-    content: `<div class="option-stack">${optionRow({ type: "checkbox", key: "contactForm", selected: state.contactForm, title: "Contact form", description: "Validated messages with enquiry management.", price: "$30–50" })}${optionRow({ type: "checkbox", key: "blog", selected: state.blog, title: "Blog, journal or news feed", description: "Publish and manage articles and announcements.", price: "$60–90" })}${optionRow({ type: "checkbox", key: "newsletter", selected: state.newsletter, title: "Newsletter signup", description: "Collect and manage subscribers. Campaign sending is separate.", price: "$20–30" })}</div>${compareBlock("communication", "What's included?", "<p>Contact forms include validation and message delivery. Blogs include listings and article pages. Newsletter signup collects subscribers; it does not include full email campaigns. Each selected service adds one $10 dashboard integration.</p>")}`,
+  const contact = groupShell({
+    id: "contact-form", visual: "contact", title: "Contact form. Make it easy to get in touch.", intro: "Receive clear, validated enquiries through your website.",
+    content: `<div class="option-stack">${optionRow({ type: "checkbox", key: "contactForm", selected: state.contactForm, title: "Contact form", description: "Validated messages with enquiry management.", price: "$30–50" })}</div>${compareBlock("contact", "What's included?", "<p>A tailored form, input validation and message delivery. Selecting it also includes the admin dashboard and one service integration.</p>")}`,
   });
-  return sectionShell({ id: "customers", number: "03 · Customers & communication", title: "Build lasting relationships.", intro: "Give customers a secure place to return and simple ways to hear from you.", visual: "accounts", content: accounts + communication });
+  const blog = groupShell({
+    id: "blog", visual: "blog", title: "Blog, journal or news feed. Keep people informed.", intro: "Publish articles, updates and announcements from your website.",
+    content: `<div class="option-stack">${optionRow({ type: "checkbox", key: "blog", selected: state.blog, title: "Blog, journal or news feed", description: "Publish and manage articles and announcements.", price: "$60–90" })}</div>${compareBlock("blog", "What's included?", "<p>Article listings, individual article pages and dashboard content management. Selecting it adds one dashboard service integration.</p>")}`,
+  });
+  const newsletter = groupShell({
+    id: "newsletter", visual: "newsletter", title: "Newsletter signup. Grow your audience.", intro: "Collect subscribers through a clear, accessible signup form.",
+    content: `<div class="option-stack">${optionRow({ type: "checkbox", key: "newsletter", selected: state.newsletter, title: "Newsletter signup", description: "Collect and manage subscribers. Campaign sending is separate.", price: "$20–30" })}</div>${compareBlock("newsletter", "What's included?", "<p>Subscriber collection and dashboard management. Email campaign design and sending are separate. Selecting it adds one dashboard service integration.</p>")}`,
+  });
+  return sectionShell({ id: "customers", number: "03 · Customers & communication", title: "Build lasting relationships.", intro: "Give customers a secure place to return and simple ways to hear from you.", visual: "accounts", content: accounts + contact + blog + newsletter });
 }
 
 function renderManagingSection() {
   const search = groupShell({
-    id: "search", visual: "cms", title: "Search. Help people find what matters.", intro: "Add search across supported website pages and content.",
+    id: "search", visual: "search", title: "Search. Help people find what matters.", intro: "Add search across supported website pages and content.",
     content: `<div class="option-stack">${optionRow({ type: "checkbox", key: "search", selected: state.search, title: "Website search", description: "Search input, results and supported content indexing.", price: "$30" })}</div>`,
   });
   const cms = groupShell({
@@ -232,10 +246,10 @@ function renderManagingSection() {
   });
   const dependencies = getDashboardDependencies(state);
   const dashboard = groupShell({
-    id: "dashboard", visual: "cms", title: "Admin dashboard. Keep everything in one place.", intro: "A private control panel for content, messages and connected services.",
+    id: "dashboard", visual: "dashboard", title: "Admin dashboard. Keep everything in one place.", intro: "A private control panel for content, messages and connected services.",
     content: `<div class="option-stack">${optionRow({ type: "checkbox", key: "dashboardExplicit", selected: state.dashboardExplicit || dependencies.length > 0, title: dependencies.length ? "Admin dashboard — required" : "Admin dashboard", description: dependencies.length ? `Required by ${dependencies.length} selected service${dependencies.length === 1 ? "" : "s"}.` : "Select it independently for a private control panel.", price: dependencies.length ? `$60 + $${dependencies.length * 10}` : "$60", disabled: dependencies.length > 0 && !state.dashboardExplicit, reason: dependencies.length ? "It remains included while dependent services are selected." : "" })}</div><p class="option-note"><strong>Transparent pricing:</strong> $60 once, plus $10 for each selected service that needs dashboard integration.</p>`,
   });
-  return sectionShell({ id: "managing", number: "04 · Managing your website", title: "Stay in control.", intro: "Give visitors better navigation and choose how you manage content after launch.", visual: "cms", content: search + cms + dashboard });
+  return sectionShell({ id: "managing", number: "04 · Managing your website", title: "Stay in control.", intro: "Give visitors better navigation and choose how you manage content after launch.", visual: "search", content: search + cms + dashboard });
 }
 
 function renderGrowthSection() {
@@ -247,24 +261,24 @@ function renderGrowthSection() {
     id: "analytics", visual: "analytics", title: "Analytics. Understand what visitors do.", intro: "Choose clear essentials or add device and trend analysis.",
     content: `<div class="option-stack">${optionRow({ group: "analytics", value: "none", selected: state.analytics === "none", title: "No analytics", description: "No visitor analytics setup.", price: "Included" })}${optionRow({ group: "analytics", value: "standard", selected: state.analytics === "standard", title: "Standard analytics", description: "Views, sessions, popular pages and key statistics.", price: "$55" })}${optionRow({ group: "analytics", value: "advanced", selected: state.analytics === "advanced", title: "Advanced analytics & trends", description: "Adds devices, trends and deeper traffic breakdowns.", price: "$75" })}</div>${compareBlock("analytics", "Compare analytics options", "<p>Standard shows what is happening. Advanced helps explain how behaviour changes and which devices people use. Available data depends on the privacy-conscious provider.</p>")}`,
   });
-  return sectionShell({ id: "growth", number: "05 · Growth & insights", title: "Create room to grow.", intro: "Improve search foundations and understand how people use your website.", visual: "analytics", content: seo + analytics });
+  return sectionShell({ id: "growth", number: "05 · Growth & insights", title: "Create room to grow.", intro: "Improve search foundations and understand how people use your website.", visual: "seo", content: seo + analytics });
 }
 
 function renderFinishingSection() {
   const google = groupShell({
-    id: "google-business", visual: "finishing", title: "Google Business. Be easier to find locally.", intro: "Get help creating or configuring a profile for an eligible physical business.",
+    id: "google-business", visual: "googleBusiness", title: "Google Business. Be easier to find locally.", intro: "Get help creating or configuring a profile for an eligible physical business.",
     content: `<div class="option-stack">${optionRow({ type: "checkbox", key: "googleBusiness", selected: state.googleBusiness, title: "Google Business Profile setup", description: "Configuration assistance without promises of approval or placement.", price: "$30" })}</div>`,
   });
   const socialCount = Math.max(7, Number(state.socialCount) || 7);
   const social = groupShell({
-    id: "social", visual: "finishing", title: "Social media. Start with the right footprint.", intro: "Choose how many accounts you would like help setting up.",
+    id: "social", visual: "social", title: "Social media. Start with the right footprint.", intro: "Choose how many accounts you would like help setting up.",
     content: `<div class="option-stack">${optionRow({ group: "social", value: "none", selected: state.social === "none", title: "No social setup", price: "Included" })}${optionRow({ group: "social", value: "3", selected: state.social === "3", title: "Up to 3 accounts", price: "$30" })}${optionRow({ group: "social", value: "6", selected: state.social === "6", title: "Up to 6 accounts", price: "$45" })}${optionRow({ group: "social", value: "more", selected: state.social === "more", title: "6 accounts + extras", description: "$50 base, then $5 per account beyond six.", price: state.social === "more" ? `$${50 + (socialCount - 6) * 5}` : "$50+" })}</div>${state.social === "more" ? `<div class="revealed-field"><label class="field-label" for="social-count">Total number of accounts</label><input id="social-count" type="number" min="7" max="50" value="${socialCount}" data-social-count /></div>` : ""}${compareBlock("social", "Compare social setup tiers", "<p>Choose the smallest tier that covers the accounts you plan to use. The 6+ tier charges $50 for six, then $5 for each additional account.</p>")}`,
   });
   const extras = groupShell({
-    id: "project-extras", visual: "finishing", title: "Anything else before launch?", intro: "Add domain assistance and tell us about special ideas or requirements.",
+    id: "project-extras", visual: "domainAssistance", title: "Anything else before launch?", intro: "Add domain assistance and tell us about special ideas or requirements.",
     content: `<div class="option-stack">${optionRow({ type: "checkbox", key: "domainAssistance", selected: state.domainAssistance, title: "Domain & hosting assistance", description: "Registration, renewal and third-party costs are separate.", price: "To confirm" })}</div><label class="field-label" for="project-notes">Anything else you'd like us to know?</label><textarea id="project-notes" data-notes placeholder="Tell us about any special features, ideas or requirements you have in mind...">${escapeHtml(state.notes)}</textarea>`,
   });
-  return sectionShell({ id: "finishing", number: "06 · Finishing touches", title: "Get ready to launch.", intro: "A few thoughtful extras can make the finished website easier to find and manage.", visual: "finishing", content: google + social + extras });
+  return sectionShell({ id: "finishing", number: "06 · Finishing touches", title: "Get ready to launch.", intro: "A few thoughtful extras can make the finished website easier to find and manage.", visual: "googleBusiness", content: google + social + extras });
 }
 
 function githubLogo() {

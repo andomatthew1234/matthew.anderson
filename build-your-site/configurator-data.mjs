@@ -99,16 +99,22 @@ export const PRICE_CONFIG = Object.freeze({
 // keeps a polished labelled placeholder in place whenever an asset is unavailable.
 export const VISUAL_CONFIG = Object.freeze({
   pages: { label: "Your website's pages", src: "../assets/configurator/pages-preview.webp" },
-  payments: { label: "Payments & checkout", src: "../assets/configurator/payments-preview.webp" },
+  paymentLinks: { label: "Payment links", src: "../assets/configurator/payment-links-preview.webp" },
+  professionalPayments: { label: "Professional checkout", src: "../assets/configurator/professional-payments-preview.webp" },
   bookings: { label: "Online bookings", src: "../assets/configurator/bookings-preview.webp" },
   events: { label: "Events & RSVP", src: "../assets/configurator/events-preview.webp" },
   accounts: { label: "Customer accounts", src: "../assets/configurator/accounts-preview.webp" },
-  contact: { label: "Customer communication", src: "../assets/configurator/contact-preview.webp" },
+  contact: { label: "Contact form", src: "../assets/configurator/contact-preview.webp" },
   blog: { label: "Blog & news", src: "../assets/configurator/blog-preview.webp" },
+  newsletter: { label: "Newsletter signup", src: "../assets/configurator/newsletter-preview.webp" },
+  search: { label: "Website search", src: "../assets/configurator/search-preview.webp" },
   cms: { label: "Website editor", src: "../assets/configurator/cms-preview.webp" },
+  dashboard: { label: "Admin dashboard", src: "../assets/configurator/dashboard-preview.webp" },
   analytics: { label: "Analytics & insights", src: "../assets/configurator/analytics-preview.webp" },
   seo: { label: "Search visibility", src: "../assets/configurator/seo-preview.webp" },
-  finishing: { label: "Finishing touches", src: "../assets/configurator/finishing-preview.webp" },
+  googleBusiness: { label: "Google Business Profile", src: "../assets/configurator/google-business-preview.webp" },
+  social: { label: "Social media accounts", src: "../assets/configurator/social-preview.webp" },
+  domainAssistance: { label: "Domain & hosting assistance", src: "../assets/configurator/hosting-preview.webp" },
   hosting: { label: "Hosting & infrastructure", src: "../assets/configurator/hosting-preview.webp" },
 });
 

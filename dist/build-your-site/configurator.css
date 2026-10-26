@@ -268,12 +268,15 @@ button { color: inherit; }
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   opacity: 0;
   transition: opacity 220ms ease;
 }
 
 .visual-placeholder img.is-loaded { opacity: 1; }
+.visual-placeholder.has-image::before,
+.visual-placeholder.has-image::after,
+.visual-placeholder.has-image .visual-placeholder__label { opacity: 0; }
 
 .mobile-visual { display: none; aspect-ratio: 16 / 10; margin-bottom: 2rem; }
 
