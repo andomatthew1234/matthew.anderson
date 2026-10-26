@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Configure the pages, features and services for your BuiltByMatthew website and generate an indicative estimate."
+    />
+    <meta name="theme-color" content="#f3efe6" />
+    <title>Build Your Site — BuiltByMatthew</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="./configurator.css" />
+    <script type="module" src="./configurator.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#configurator">Skip to configurator</a>
+
+    <div class="builder-shell">
+      <header class="builder-header" aria-label="Primary navigation">
+        <a class="wordmark" href="../" aria-label="builtbymatthew, home">
+          <img class="wordmark-logo" src="../favicon.png" alt="" aria-hidden="true" />
+          <span>builtbymatthew</span>
+        </a>
+        <a class="builder-close" href="../" aria-label="Close configurator and return home">
+          <span>Back home</span><span aria-hidden="true">↖</span>
+        </a>
+      </header>
+
+      <main id="configurator" class="builder-main">
+        <div class="builder-intro">
+          <p class="eyebrow">Build your site</p>
+          <h1>Make it yours.</h1>
+          <p>Choose what you need. We’ll keep the details clear and calculate the estimate.</p>
+        </div>
+
+        <nav class="step-progress" aria-label="Configurator progress">
+          <ol>
+            <li><button type="button" data-step-jump="0"><span>01</span> Pages</button></li>
+            <li><button type="button" data-step-jump="1"><span>02</span> Features</button></li>
+            <li><button type="button" data-step-jump="2"><span>03</span> Finishing touches</button></li>
+            <li><button type="button" data-step-jump="3"><span>04</span> Your estimate</button></li>
+          </ol>
+          <span class="step-progress__line" aria-hidden="true"><span></span></span>
+        </nav>
+
+        <div class="builder-layout">
+          <section class="step-panel" id="step-panel" aria-live="polite"></section>
+
+          <aside class="summary" aria-labelledby="summary-title">
+            <button class="summary__toggle" type="button" aria-expanded="true" aria-controls="summary-content">
+              <span><span class="eyebrow">Live summary</span><strong id="summary-title">Your website is coming together.</strong></span>
+              <span class="summary__toggle-icon" aria-hidden="true">−</span>
+            </button>
+            <div id="summary-content" class="summary__content"></div>
+          </aside>
+        </div>
+
+        <div class="dependency-note" id="dependency-note" role="status" aria-live="polite" hidden></div>
+
+        <div class="builder-actions">
+          <button class="text-button" id="previous-step" type="button">← Previous</button>
+          <button class="primary-button" id="next-step" type="button">Continue <span aria-hidden="true">→</span></button>
+        </div>
+      </main>
+
+      <footer class="builder-footer">
+        <a href="../terms/">Terms &amp; Conditions</a>
+        <span>Indicative pricing in AUD</span>
+      </footer>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>
