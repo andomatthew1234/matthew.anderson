@@ -163,7 +163,7 @@ try {
     }
   }
 
-  for (const root of roots.filter((root) => root.pathname.includes("/dist/") || root.protocol === "https:")) {
+  for (const root of roots.filter((root) => root.pathname.includes("/dist/"))) {
     const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
     await page.goto(new URL("", root).href, { waitUntil: "load" });
