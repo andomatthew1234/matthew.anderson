@@ -151,7 +151,7 @@
     document.documentElement.classList.add("has-gsap");
     gsapMatchMedia = window.gsap.matchMedia();
 
-    gsapMatchMedia.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
+    gsapMatchMedia.add("(min-width: 901px) and (prefers-reduced-motion: no-preference)", () => {
       const context = window.gsap.context(() => {
         calculateTargetProgresses();
 
@@ -244,7 +244,7 @@
       };
     });
 
-    gsapMatchMedia.add("(max-width: 767px), (prefers-reduced-motion: reduce)", () => {
+    gsapMatchMedia.add("(max-width: 900px), (prefers-reduced-motion: reduce)", () => {
       initialiseMobileTracking();
       return () => mobileObserver?.disconnect();
     });

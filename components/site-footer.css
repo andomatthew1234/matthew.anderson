@@ -152,7 +152,7 @@ builtbymatthew-footer {
 .editorial-footer__future {
   position: relative;
   display: inline-flex;
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   align-items: center;
   gap: 0.65rem;
   font-size: clamp(1rem, 1.15vw, 1.17rem);

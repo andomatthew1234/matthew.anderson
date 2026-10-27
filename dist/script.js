@@ -68,6 +68,8 @@ if (workMenuWrap && workMenuButton && workMenu) {
     if (isMenuOpen() && !workMenuWrap.contains(event.target)) setMenuOpen(false);
   });
 
+  menuItems.forEach((item) => item.addEventListener("click", () => setMenuOpen(false)));
+
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && isMenuOpen()) {
       event.preventDefault();

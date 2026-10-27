@@ -75,6 +75,7 @@ a {
   gap: 0.55rem;
   white-space: nowrap;
   text-transform: none;
+  min-height: 44px;
 }
 
 .wordmark-logo {
@@ -92,6 +93,9 @@ a {
 
 .nav-links a {
   position: relative;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   padding-block: 0.5rem;
 }
 
@@ -559,8 +563,8 @@ a {
 
 .portfolio-arrow {
   display: inline-grid;
-  width: 2.7rem;
-  height: 2.7rem;
+  width: 2.75rem;
+  height: 2.75rem;
   place-items: center;
   border: 1px solid rgba(24, 24, 21, 0.75);
   border-radius: 50%;
@@ -794,7 +798,36 @@ a {
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 900px) {
+  .site-header {
+    position: relative;
+    z-index: 100;
+    opacity: 1;
+    animation: none;
+  }
+  .hero {
+    min-height: auto;
+    padding-top: clamp(3.25rem, 9vh, 5.25rem);
+    padding-bottom: 2rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2.95rem, 14.5vw, 5.7rem);
+    line-height: 0.88;
+  }
+
+  .hero-title .title-mask:first-child .title-line {
+    white-space: nowrap;
+  }
+
+  .supporting-content {
+    margin-top: clamp(2.25rem, 7vh, 3.5rem);
+  }
+
+  .hero-meta {
+    margin-top: clamp(2.75rem, 8vh, 4.5rem);
+  }
+
   .portfolio-section {
     padding-block: clamp(4.5rem, 10vh, 7rem) 5rem;
   }
@@ -832,6 +865,7 @@ a {
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
   }
 
   .portfolio-viewport::-webkit-scrollbar {
@@ -849,6 +883,7 @@ a {
     flex-basis: 86cqw;
     transform: none !important;
     will-change: auto;
+    scroll-snap-stop: always;
   }
 
   .project-details {
@@ -863,7 +898,9 @@ a {
   }
 
   .project-visit-link {
-    display: inline-block;
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
     margin-top: 0.8rem;
   }
 
@@ -888,14 +925,8 @@ a {
     gap: 0.8rem;
   }
 
-  .hero {
-    min-height: calc(100svh - 4.5rem);
-    padding-top: clamp(3.75rem, 9vh, 6rem);
-    padding-bottom: 1.25rem;
-  }
-
   .hero-title {
-    font-size: clamp(4.25rem, 21vw, 7rem);
+    font-size: clamp(2.95rem, 14.5vw, 5.7rem);
     letter-spacing: -0.07em;
     line-height: 0.83;
   }
@@ -953,8 +984,14 @@ a {
     font-size: 0.62rem;
   }
 
-  .hero-title {
-    font-size: clamp(3.7rem, 19.5vw, 4.6rem);
+  .hero-title { font-size: clamp(2.95rem, 14.5vw, 5.7rem); }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .project-link:active,
+  .work-link:active,
+  .portfolio-arrow:not(:disabled):active {
+    transform: scale(0.98);
   }
 }
 

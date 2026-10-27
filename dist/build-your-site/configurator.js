@@ -22,6 +22,7 @@ import { createQuoteSnapshot, decodeConfiguration, encodeConfiguration, hostingL
 
 let state = createInitialState();
 let visualObserver;
+let visualImageObserver;
 let activeVisual = "pages";
 let visualTimer;
 let noticeTimer;
@@ -79,32 +80,49 @@ async function copyText(value) {
 
 function visualMarkup(key, mobile = false) {
   const visual = VISUAL_CONFIG[key] || VISUAL_CONFIG.pages;
-  return `<div class="${mobile ? "mobile-visual__inner" : "visual-stage__inner"}" data-active-visual="${key}"><div class="visual-placeholder" data-placeholder="${key}"><img data-visual-image="${key}" data-src="${visual.src}" alt="${escapeHtml(visual.label)} preview" hidden /><div class="visual-placeholder__label"><span class="visual-path">Preview</span><strong>${escapeHtml(visual.label)}</strong></div></div></div>`;
+  return `<div class="${mobile ? "mobile-visual__inner" : "visual-stage__inner"}" data-active-visual="${key}"><div class="visual-placeholder" data-placeholder="${key}"><img data-visual-image="${key}" data-src="${visual.src}" alt="${escapeHtml(visual.label)} preview" width="1920" height="1080" loading="lazy" decoding="async" sizes="(max-width: 820px) calc(100vw - 2.3rem), 62vw" hidden /><div class="visual-placeholder__label"><span class="visual-path">Preview</span><strong>${escapeHtml(visual.label)}</strong></div></div></div>`;
 }
 
 const mobileVisual = (key) => `<div class="mobile-visual" aria-hidden="true">${visualMarkup(key, true)}</div>`;
 
-function hydrateVisualImages(root = document) {
-  root.querySelectorAll("[data-visual-image]").forEach((image) => {
-    if (!loadedVisuals.has(image.dataset.visualImage)) return;
-    const reveal = () => { image.classList.add("is-loaded"); image.closest(".visual-placeholder")?.classList.add("has-image"); };
-    image.addEventListener("load", reveal, { once: true });
-    image.src = image.dataset.src; image.hidden = false;
-    if (image.complete && image.naturalWidth > 0) reveal();
-  });
+function loadVisualImage(image) {
+  if (!image?.dataset.src || image.src) return;
+  const reveal = () => {
+    loadedVisuals.add(image.dataset.visualImage);
+    image.classList.add("is-loaded");
+    image.closest(".visual-placeholder")?.classList.add("has-image");
+  };
+  image.addEventListener("load", reveal, { once: true });
+  image.src = image.dataset.src;
+  image.hidden = false;
+  if (image.complete && image.naturalWidth > 0) reveal();
 }
 
-function preloadVisuals() {
-  Object.entries(VISUAL_CONFIG).forEach(([key, visual]) => {
-    const image = new Image();
-    image.onload = () => { loadedVisuals.add(key); hydrateVisualImages(); };
-    image.src = visual.src;
+function hydrateVisualImages(root = document) {
+  if (root === document) visualImageObserver?.disconnect();
+  if ("IntersectionObserver" in window) {
+    visualImageObserver ||= new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        loadVisualImage(entry.target);
+        visualImageObserver.unobserve(entry.target);
+      });
+    }, { rootMargin: "450px 0px", threshold: 0.01 });
+  }
+  root.querySelectorAll("[data-visual-image]").forEach((image) => {
+    const isDesktopStage = Boolean(image.closest("#visual-stage")) && matchMedia("(min-width: 701px)").matches;
+    if (isDesktopStage || !visualImageObserver) loadVisualImage(image);
+    else visualImageObserver.observe(image);
   });
 }
 
 function setActiveVisual(key, immediate = false) {
   if (!VISUAL_CONFIG[key] || (activeVisual === key && visualStage.children.length)) return;
   activeVisual = key; clearTimeout(visualTimer);
+  if (matchMedia("(min-width: 701px)").matches) {
+    const preload = new Image();
+    preload.src = VISUAL_CONFIG[key].src;
+  }
   const update = () => { visualStage.innerHTML = visualMarkup(key); hydrateVisualImages(visualStage); requestAnimationFrame(() => visualStage.classList.remove("is-changing")); };
   if (immediate || reduceMotion.matches || !visualStage.children.length) update();
   else { visualStage.classList.add("is-changing"); visualTimer = setTimeout(update, 160); }
@@ -126,7 +144,7 @@ function optionRow({ type = "radio", group, value, key, selected, title, descrip
 }
 
 const compareBlock = (id, label, content) => `<details class="comparison" data-comparison="${id}"><summary>${label}</summary><div class="comparison__content">${content}</div></details>`;
-const groupShell = ({ id, visual, title, intro, content }) => `<div class="config-group" id="${id}" data-visual="${visual}">${mobileVisual(visual)}<h3>${title}</h3><p>${intro}</p>${content}</div>`;
+const groupShell = ({ id, visual, title, intro, content }) => `<div class="config-group" id="${id}" data-visual="${visual}"><h3>${title}</h3><p>${intro}</p>${mobileVisual(visual)}${content}</div>`;
 const sectionShell = ({ id, number, title, intro, visual, content, extraClass = "" }) => `<section class="config-section ${extraClass}" id="${id}" data-visual="${visual}" aria-labelledby="${id}-title"><header class="config-section__heading"><p class="section-number">${number}</p><h2 id="${id}-title">${title}</h2><p>${intro}</p></header>${content}</section>`;
 
 function renderPresets() {
@@ -160,13 +178,13 @@ function renderPagesSection() {
     pageTile({ id: "help-professional", title: "Professional Help Centre", description: "AI search, Markdown support and improved discovery. Provider fees are separate.", price: "$70–140 AUD", selected: state.helpTier === "professional", group: "help-tier", value: "professional", visual: "faq" }),
   ].join("");
   const donation = state.pages.donations ? `<div class="revealed-field"><p class="field-label">How should donation buttons work?</p><div class="option-stack">${optionRow({ group: "donationMethod", value: "external", selected: state.donationMethod === "external", title: "Customer-provided donation link", description: "Link to an existing external donation service. No checkout required.", price: "Included" })}${optionRow({ group: "donationMethod", value: "checkout", selected: state.donationMethod === "checkout", title: "BuiltByMatthew checkout integration", description: "Automatically includes Professional checkout.", price: "$90–180" })}</div></div>` : "";
-  return sectionShell({ id: "pages", number: "01 · Your website's pages", title: "Start with the right foundations.", intro: "What pages do you want to be on your site?", visual: "pages", content: `${mobileVisual("pages")}<div class="page-grid">${standard}</div><div class="page-tier-block" data-visual="menu">${mobileVisual("menu")}<h3>Restaurant menu</h3><p>Choose at most one menu style.</p><div class="page-grid page-grid--compact">${menu}</div></div><div class="page-tier-block" data-visual="faq">${mobileVisual("faq")}<h3>Help centre</h3><p>Choose the support experience that fits your customers.</p><div class="page-grid page-grid--compact">${help}</div></div>${donation}<div class="quantity-control"><label for="custom-pages"><strong>Additional custom pages</strong><small>$50–70 AUD each</small></label><input id="custom-pages" type="number" min="0" max="20" value="${state.customPageCount}" data-custom-page-count /></div>` });
+  return sectionShell({ id: "pages", number: "01 · Your website's pages", title: "Start with the right foundations.", intro: "What pages do you want to be on your site?", visual: "pages", content: `${mobileVisual("pages")}<div class="page-grid">${standard}</div><div class="page-tier-block" data-visual="menu"><h3>Restaurant menu</h3><p>Choose at most one menu style.</p>${mobileVisual("menu")}<div class="page-grid page-grid--compact">${menu}</div></div><div class="page-tier-block" data-visual="faq"><h3>Help centre</h3><p>Choose the support experience that fits your customers.</p>${mobileVisual("faq")}<div class="page-grid page-grid--compact">${help}</div></div>${donation}<div class="quantity-control"><label for="custom-pages"><strong>Additional custom pages</strong><small>$50–70 AUD each</small></label><input id="custom-pages" type="number" min="0" max="20" value="${state.customPageCount}" data-custom-page-count /></div>` });
 }
 
 function renderSellingSection() {
   const resolved = resolveDependencies(state).effective;
-  const paymentsVisual = resolved.payments === "professional" ? "professionalPayments" : "paymentLinks";
-  const payments = groupShell({ id: "payments", visual: paymentsVisual, title: "Payments. How would you like customers to pay?", intro: "Choose a simple hosted link or a complete checkout.", content: `<div class="option-stack">${optionRow({ group: "payments", value: "none", selected: resolved.payments === "none", title: "No payments", price: "Included", disabled: resolved.payments !== state.payments, reason: resolved.payments !== state.payments ? "A selected feature requires checkout." : "", visual: "paymentLinks" })}${optionRow({ group: "payments", value: "links", selected: resolved.payments === "links", title: "Payment links", description: "Secure hosted links for simple purchases or donations.", price: "$20", visual: "paymentLinks" })}${optionRow({ group: "payments", value: "professional", selected: resolved.payments === "professional", title: "Professional checkout", description: "Cart, multiple products and flexible checkout.", price: "$90–180", reason: resolved.payments !== state.payments ? "Automatically required by another selection." : "", visual: "professionalPayments" })}</div>` });
+  const paymentsVisual = resolved.payments === "professional" ? "professionalPayments" : resolved.payments === "links" ? "paymentLinks" : "pages";
+  const payments = groupShell({ id: "payments", visual: paymentsVisual, title: "Payments. How would you like customers to pay?", intro: "Choose a simple hosted link or a complete checkout.", content: `<div class="option-stack">${optionRow({ group: "payments", value: "none", selected: resolved.payments === "none", title: "No payments", price: "Included", disabled: resolved.payments !== state.payments, reason: resolved.payments !== state.payments ? "A selected feature requires checkout." : "", visual: "pages" })}${optionRow({ group: "payments", value: "links", selected: resolved.payments === "links", title: "Payment links", description: "Secure hosted links for simple purchases or donations.", price: "$20", visual: "paymentLinks" })}${optionRow({ group: "payments", value: "professional", selected: resolved.payments === "professional", title: "Professional checkout", description: "Cart, multiple products and flexible checkout.", price: "$90–180", reason: resolved.payments !== state.payments ? "Automatically required by another selection." : "", visual: "professionalPayments" })}</div>` });
   const bookings = groupShell({ id: "bookings", visual: "bookings", title: "Bookings. Let customers reserve your time.", intro: "Add appointment selection and a confirmation flow.", content: `<div class="option-stack">${optionRow({ group: "bookings", value: "none", selected: !state.bookings, title: "No bookings", price: "Included" })}${optionRow({ group: "bookings", value: "online", selected: state.bookings, title: "Online appointments", description: "Available times, booking form and confirmation.", price: "$70–95" })}</div>` });
   const events = groupShell({ id: "events", visual: "events", title: "Events. Let people register to attend.", intro: "Public registration works without accounts; member-only attendance requires login.", content: `<div class="option-stack">${optionRow({ group: "rsvp", value: "none", selected: state.rsvp === "none", title: "No RSVP", price: "Included" })}${optionRow({ group: "rsvp", value: "public", selected: state.rsvp === "public", title: "Public RSVP", description: "Registration and attendee management.", price: "$40–80" })}${optionRow({ group: "rsvp", value: "member", selected: state.rsvp === "member", title: "Member-only RSVP", description: "Account-linked event registration.", price: "$40–80" })}</div>` });
   return sectionShell({ id: "selling", number: "02 · Selling & bookings", title: "Turn visits into action.", intro: "Take payments, accept bookings and manage event attendance.", visual: paymentsVisual, content: payments + bookings + events });
@@ -264,7 +282,8 @@ function renderQuote(quote, historical = false) {
   const ongoing = quote.ongoingCharges?.length ? `<section class="quote-group"><p class="quote-group-title">Possible ongoing or third-party charges</p><ul>${quote.ongoingCharges.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section>` : "";
   const codePanel = currentCode ? renderCodePanel() : "";
   const nextSteps = currentCode && !quoteOutdated ? renderWhatsNext() : "";
-  return `<article class="quote-panel" id="generated-quote" tabindex="-1"><header class="quote-header"><div><p class="section-number">${historical ? "Recovered historical estimate" : "BuiltByMatthew"}</p><h3>Indicative estimate</h3></div><p>Pricing ${escapeHtml(restoredSnapshot?.pricingVersion || PRICING_VERSION)}</p></header>${historical ? '<p class="historical-note">This is the original saved quote snapshot. It has not been recalculated using current prices.</p>' : ""}${groupHtml}${unpriced}${dependencyHtml}<section class="quote-group"><p class="quote-group-title">Hosting</p><p>${escapeHtml(restoredSnapshot?.hosting?.label || hostingLabel(state.hosting))}</p></section>${ongoing}${renderPricingSummary(quote)}${quote.unpriced.length ? '<p><strong>Complete total: subject to confirmation.</strong></p>' : ""}<p class="quote-notice">This is an indicative estimate, not a binding contract. Domain, hosting and third-party service fees may be additional.</p><div class="quote-actions"><button class="quote-action" type="button" data-copy>Copy estimate</button><button class="quote-action" type="button" data-edit>Edit selections</button><button class="quote-action" type="button" data-print>Print estimate</button><button class="quote-action" type="button" data-reset>Start again</button></div>${historical ? "" : `<div class="continue-panel"><h4>Happy with this starting point?</h4><p>Continuing saves a shareable copy of this indicative estimate. It does not create a contract, account or payment.</p><button class="generate-button" type="button" data-continue>I'm good with that quote, continue</button></div>`}${codePanel}${nextSteps}</article>`;
+  const share = typeof navigator.share === "function" ? '<button class="quote-action" type="button" data-share>Share estimate</button>' : "";
+  return `<article class="quote-panel" id="generated-quote" tabindex="-1"><header class="quote-header"><div><p class="section-number">${historical ? "Recovered historical estimate" : "BuiltByMatthew"}</p><h3>Indicative estimate</h3></div><p>Pricing ${escapeHtml(restoredSnapshot?.pricingVersion || PRICING_VERSION)}</p></header>${historical ? '<p class="historical-note">This is the original saved quote snapshot. It has not been recalculated using current prices.</p>' : ""}${groupHtml}${unpriced}${dependencyHtml}<section class="quote-group"><p class="quote-group-title">Hosting</p><p>${escapeHtml(restoredSnapshot?.hosting?.label || hostingLabel(state.hosting))}</p></section>${ongoing}${renderPricingSummary(quote)}${quote.unpriced.length ? '<p><strong>Complete total: subject to confirmation.</strong></p>' : ""}<p class="quote-notice">This is an indicative estimate, not a binding contract. Domain, hosting and third-party service fees may be additional.</p><div class="quote-actions"><button class="quote-action" type="button" data-copy>Copy estimate</button>${share}<button class="quote-action" type="button" data-edit>Edit selections</button><button class="quote-action" type="button" data-print>Print estimate</button><button class="quote-action" type="button" data-reset>Start again</button></div>${historical ? "" : `<div class="continue-panel"><h4>Happy with this starting point?</h4><p>Continuing saves a shareable copy of this indicative estimate. It does not create a contract, account or payment.</p><button class="generate-button" type="button" data-continue>I'm good with that quote, continue</button></div>`}${codePanel}${nextSteps}</article>`;
 }
 
 function renderCodePanel() {
@@ -308,7 +327,14 @@ function updateSummaryBar() {
 }
 
 function cancelGeneration() { clearTimeout(generationTimer); isGenerating = false; }
-function activateSelectionVisual(key) { if (key && VISUAL_CONFIG[key]) setTimeout(() => setActiveVisual(key, reduceMotion.matches), 60); }
+function activateSelectionVisual(key) {
+  if (!key || !VISUAL_CONFIG[key]) return;
+  if (matchMedia("(min-width: 701px)").matches) {
+    const preload = new Image();
+    preload.src = VISUAL_CONFIG[key].src;
+  }
+  setTimeout(() => setActiveVisual(key, reduceMotion.matches), 60);
+}
 
 function invalidateGeneratedQuote() {
   cancelGeneration();
@@ -377,7 +403,10 @@ document.addEventListener("change", (event) => {
   else if (input.matches("[data-custom-page-count]")) mutate((draft) => { draft.customPageCount = Number(input.value); }, "", "[data-custom-page-count]");
   else if (input.matches("[data-language-count]")) mutate((draft) => { draft.languageCount = Number(input.value); }, "", "[data-language-count]");
   else if (input.matches("[data-social-count]")) mutate((draft) => { draft.socialCount = Number(input.value); }, "", "[data-social-count]");
-  activateSelectionVisual(visualKey);
+  const resolvedVisual = input.matches('[data-tier="payments"]')
+    ? (resolveDependencies(state).effective.payments === "professional" ? "professionalPayments" : resolveDependencies(state).effective.payments === "links" ? "paymentLinks" : "pages")
+    : visualKey;
+  activateSelectionVisual(resolvedVisual);
 });
 
 document.addEventListener("input", (event) => {
@@ -413,6 +442,9 @@ document.addEventListener("click", async (event) => {
     } catch (error) { status.textContent = error.message; status.classList.add("is-error"); setNotice(error.message, true); }
   } else if (button.hasAttribute("data-copy")) {
     try { await copyText(generateQuoteText()); showToast("Estimate copied"); } catch { setNotice("Copying was blocked. Select and copy the estimate manually.", true); }
+  } else if (button.hasAttribute("data-share") && navigator.share) {
+    try { await navigator.share({ title: "BuiltByMatthew website estimate", text: generateQuoteText() }); }
+    catch (error) { if (error?.name !== "AbortError") setNotice("Sharing was blocked. You can copy the estimate instead.", true); }
   } else if (button.hasAttribute("data-copy-code")) {
     try { await copyText(currentCode); showToast("Configuration code copied"); } catch { document.querySelector("[data-generated-code]")?.select(); setNotice("Copying was blocked. The full code is selected for you.", true); }
   } else if (button.hasAttribute("data-copy-next-code")) {
@@ -426,4 +458,4 @@ document.addEventListener("click", async (event) => {
   else if (button.hasAttribute("data-reset")) { cancelGeneration(); state = createInitialState(); hasInteracted = false; restoredSnapshot = null; currentSnapshot = null; currentCode = ""; quoteOutdated = false; activeVisual = "pages"; renderAll(); setActiveVisual("pages", true); document.querySelector("#preset-container")?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth" }); }
 });
 
-preloadVisuals(); setActiveVisual("pages", true); renderAll();
+setActiveVisual("pages", true); renderAll();

@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { footerMarkup } from "../components/site-footer-markup.mjs";
@@ -8,6 +8,16 @@ const outputDirectory = path.resolve(root, "dist");
 
 if (path.dirname(outputDirectory) !== root || path.basename(outputDirectory) !== "dist") {
   throw new Error(`Refusing to rebuild unexpected output path: ${outputDirectory}`);
+}
+
+async function makeTreeWritable(directory) {
+  const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
+  await Promise.all(entries.filter((entry) => entry.isDirectory()).map(async (entry) => {
+    const child = path.join(directory, entry.name);
+    await makeTreeWritable(child);
+    await chmod(child, 0o777).catch(() => {});
+  }));
+  await chmod(directory, 0o777).catch(() => {});
 }
 
 const entries = [
@@ -27,6 +37,7 @@ const entries = [
   "quote-viewer",
 ];
 
+await makeTreeWritable(outputDirectory);
 await rm(outputDirectory, { recursive: true, force: true });
 await mkdir(outputDirectory, { recursive: true });
 

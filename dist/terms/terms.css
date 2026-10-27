@@ -1,5 +1,5 @@
 .terms-page {
-  min-width: 20rem;
+  min-width: 0;
 }
 
 .terms-shell {
@@ -201,17 +201,21 @@
 }
 
 .contact-section a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.16em;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .terms-main {
     padding-top: clamp(3.5rem, 9vh, 5rem);
   }
 
   .terms-intro h1 {
-    font-size: clamp(3.8rem, 17vw, 7rem);
+    max-width: none;
+    font-size: clamp(3.4rem, 10.5vw, 5.5rem);
   }
 
   .terms-summary {
@@ -244,10 +248,6 @@
 @media (max-width: 540px) {
   .terms-header {
     font-size: 0.66rem;
-  }
-
-  .terms-header .wordmark-logo {
-    display: none;
   }
 
   .terms-intro h1 {
