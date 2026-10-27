@@ -135,6 +135,22 @@ async function validatePage(root, route, viewport, reducedMotion = "no-preferenc
     assert(Number.parseFloat(motion.animation) <= 0.00001, `${label}: reduced-motion animation remains (${motion.animation})`);
   }
 
+  if (route === "" && viewport.width === 1024 && reducedMotion === "no-preference") {
+    const reconnectVisible = await page.evaluate(async () => {
+      const host = document.querySelector("builtbymatthew-footer");
+      const finalRow = host.querySelector(".editorial-footer__final");
+      finalRow.classList.remove("is-visible");
+      window.scrollTo({ top: 0, behavior: "instant" });
+      host.remove();
+      document.body.append(host);
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      finalRow.scrollIntoView({ block: "center", behavior: "instant" });
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+      return finalRow.classList.contains("is-visible") && getComputedStyle(finalRow).opacity === "1";
+    });
+    assert(reconnectVisible, `${label}: footer reveal animation did not recover after reconnect`);
+  }
+
   if (/build-your-site|quote-viewer/.test(route)) {
     await page.emulateMedia({ media: "print" });
     const printDisplay = await page.locator("builtbymatthew-footer").evaluate((node) => getComputedStyle(node).display);
