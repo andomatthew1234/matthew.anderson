@@ -14,22 +14,25 @@ if (!document.querySelector('link[data-site-footer-styles]')) {
 
 class BuiltByMatthewFooter extends HTMLElement {
   connectedCallback() {
-    if (this.dataset.ready === "true") return;
+    if (this.dataset.ready !== "true") {
+      if (!this.querySelector(".editorial-footer")) {
+        this.innerHTML = footerMarkup({ siteRoot });
+      }
+      this.dataset.ready = "true";
 
-    if (!this.querySelector(".editorial-footer")) {
-      this.innerHTML = footerMarkup({ siteRoot });
+      if (document.querySelector(".estimate-bar")) {
+        this.classList.add("has-fixed-estimate");
+      }
     }
-    this.dataset.ready = "true";
+
     this.querySelector("[data-footer-year]").textContent = new Date().getFullYear();
-
-    if (document.querySelector(".estimate-bar")) {
-      this.classList.add("has-fixed-estimate");
-    }
+    this.revealObserver?.disconnect();
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const revealItems = [...this.querySelectorAll(".footer-reveal")];
 
     if (reducedMotion || !("IntersectionObserver" in window)) {
+      this.classList.remove("site-footer--motion");
       revealItems.forEach((item) => item.classList.add("is-visible"));
       return;
     }
@@ -46,7 +49,9 @@ class BuiltByMatthewFooter extends HTMLElement {
       { threshold: 0.12, rootMargin: "0px 0px -6%" },
     );
 
-    revealItems.forEach((item) => this.revealObserver.observe(item));
+    revealItems
+      .filter((item) => !item.classList.contains("is-visible"))
+      .forEach((item) => this.revealObserver.observe(item));
   }
 
   disconnectedCallback() {
