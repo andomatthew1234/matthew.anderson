@@ -4,7 +4,7 @@ import {
   calculateEstimate,
   resolveDependencies,
   serialisableState,
-} from "./configurator-data.mjs?v=6";
+} from "./configurator-data.mjs?v=7";
 
 const MAX_CODE_LENGTH = 200_000;
 
@@ -83,6 +83,42 @@ function validatePrice(price, label) {
   }
 }
 
+function validateCentsRange(range, label) {
+  if (!range || !Number.isInteger(range.min) || !Number.isInteger(range.max) || range.min < 0 || range.max < range.min) {
+    throw new Error(`The saved ${label} is invalid.`);
+  }
+}
+
+function validateQuoteMoney(quote) {
+  const hasModernPricing = Boolean(quote.money || quote.originalTotals || quote.discountTotals);
+  if (!hasModernPricing) return;
+  if (!quote.money || !quote.originalTotals || !quote.discountTotals) throw new Error("The saved discount breakdown is incomplete.");
+  const money = quote.money;
+  if (money.currency !== "AUD" || typeof money.discountRuleVersion !== "string" || !money.discountRuleVersion) {
+    throw new Error("The saved discount rule is invalid.");
+  }
+  if (!Number.isInteger(money.thresholdCents) || money.thresholdCents < 0 || !Number.isInteger(money.rateBasisPoints) || money.rateBasisPoints < 0) {
+    throw new Error("The saved discount settings are invalid.");
+  }
+  validateCentsRange(money.originalCents, "original estimate");
+  validateCentsRange(money.discountCents, "discount amount");
+  validateCentsRange(money.finalCents, "discounted estimate");
+  validatePrice([quote.originalTotals.min, quote.originalTotals.max], "original total");
+  validatePrice([quote.discountTotals.min, quote.discountTotals.max], "discount total");
+  for (const endpoint of ["min", "max"]) {
+    if (money.originalCents[endpoint] - money.discountCents[endpoint] !== money.finalCents[endpoint]) {
+      throw new Error("The saved discount arithmetic is invalid.");
+    }
+    if (
+      Math.round(quote.originalTotals[endpoint] * 100) !== money.originalCents[endpoint] ||
+      Math.round(quote.discountTotals[endpoint] * 100) !== money.discountCents[endpoint] ||
+      Math.round(quote.totals[endpoint] * 100) !== money.finalCents[endpoint]
+    ) {
+      throw new Error("The saved estimate does not match its currency breakdown.");
+    }
+  }
+}
+
 function validateSnapshot(snapshot) {
   if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) throw new Error("The configuration data is invalid.");
   if (snapshot.schemaVersion !== SCHEMA_VERSION) throw new Error(`Configuration schema ${snapshot.schemaVersion ?? "unknown"} is not supported.`);
@@ -95,6 +131,7 @@ function validateSnapshot(snapshot) {
     validatePrice(line.price, `line ${index + 1}`);
   });
   validatePrice([snapshot.quote.totals.min, snapshot.quote.totals.max], "total");
+  validateQuoteMoney(snapshot.quote);
   if (!Array.isArray(snapshot.quote.unpriced) || snapshot.quote.unpriced.some((item) => typeof item !== "string" || item.length > 240)) throw new Error("The saved custom-price items are invalid.");
   if (!snapshot.hosting || typeof snapshot.hosting.id !== "string" || typeof snapshot.hosting.label !== "string") throw new Error("The saved hosting selection is invalid.");
   return snapshot;

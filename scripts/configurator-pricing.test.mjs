@@ -3,14 +3,19 @@ import { statSync } from "node:fs";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+  DISCOUNT_RULE_VERSION,
   PRESET_CONFIG,
   PRICING_VERSION,
   SCHEMA_VERSION,
   VISUAL_CONFIG,
+  applyDiscount,
   applyPreset,
+  applyProgressiveDiscountCents,
   calculateEstimate,
   createInitialState,
+  formatDiscountRuleLabel,
   getDashboardDependencies,
+  getQuoteMoney,
   normaliseState,
   requiresBackend,
   resolveDependencies,
@@ -25,7 +30,7 @@ import {
   restoreConfiguration,
 } from "../build-your-site/configuration-code.mjs";
 
-const totals = (state) => calculateEstimate(state).totals;
+const totals = (state) => calculateEstimate(state).originalTotals;
 const lineNames = (state) => calculateEstimate(state).lines.map((line) => line.name);
 
 function assertTotals(state, min, max) {
@@ -35,13 +40,63 @@ function assertTotals(state, min, max) {
 function assertQuoteAddsUp(state) {
   const quote = calculateEstimate(state);
   const priced = quote.lines.filter((line) => !line.included);
-  assert.equal(quote.totals.min, priced.reduce((sum, line) => sum + line.price[0], 0));
-  assert.equal(quote.totals.max, priced.reduce((sum, line) => sum + line.price[1], 0));
+  assert.equal(quote.originalTotals.min, priced.reduce((sum, line) => sum + line.price[0], 0));
+  assert.equal(quote.originalTotals.max, priced.reduce((sum, line) => sum + line.price[1], 0));
+  assert.equal(quote.money.originalCents.min, quote.money.discountCents.min + quote.money.finalCents.min);
+  assert.equal(quote.money.originalCents.max, quote.money.discountCents.max + quote.money.finalCents.max);
   quote.lines.forEach((line) => {
     assert.ok(Array.isArray(line.price) && line.price.length === 2, `${line.name} has no price pair`);
     assert.ok(line.price[0] <= line.price[1], `${line.name} has an inverted range`);
   });
 }
+
+test("progressive discount applies only to integer cents above $400", () => {
+  const cases = [
+    [0, 0, 0],
+    [39_999, 0, 39_999],
+    [40_000, 0, 40_000],
+    [40_001, 0, 40_001],
+    [45_000, 1_000, 44_000],
+    [53_100, 2_620, 50_480],
+    [75_000, 7_000, 68_000],
+    [100_000, 12_000, 88_000],
+  ];
+  for (const [originalCents, discountCents, finalCents] of cases) {
+    assert.deepEqual(applyProgressiveDiscountCents(originalCents), { originalCents, discountCents, finalCents });
+  }
+  assert.deepEqual(applyDiscount(531), { original: 531, discount: 26.2, final: 504.8 });
+});
+
+test("minimum and maximum estimates are discounted independently", () => {
+  assert.deepEqual(
+    [applyDiscount(350), applyDiscount(550)],
+    [
+      { original: 350, discount: 0, final: 350 },
+      { original: 550, discount: 30, final: 520 },
+    ],
+  );
+  assert.deepEqual(
+    [applyDiscount(450), applyDiscount(750)],
+    [
+      { original: 450, discount: 10, final: 440 },
+      { original: 750, discount: 70, final: 680 },
+    ],
+  );
+  const crossing = createInitialState();
+  crossing.giftCards = true;
+  const crossingQuote = calculateEstimate(crossing);
+  assert.deepEqual(crossingQuote.originalTotals, { min: 280, max: 420 });
+  assert.deepEqual(crossingQuote.discountTotals, { min: 0, max: 4 });
+  assert.deepEqual(crossingQuote.totals, { min: 280, max: 416 });
+
+  const above = createInitialState();
+  above.loyalty = true;
+  above.giftCards = true;
+  const aboveQuote = calculateEstimate(above);
+  assert.deepEqual(aboveQuote.originalTotals, { min: 520, max: 820 });
+  assert.deepEqual(aboveQuote.discountTotals, { min: 24, max: 84 });
+  assert.deepEqual(aboveQuote.totals, { min: 496, max: 736 });
+});
 
 test("every configured visual points to a production asset", () => {
   const configuratorRoot = new URL("../build-your-site/", import.meta.url);
@@ -243,6 +298,8 @@ test("loyalty rewards apply checkout, Full accounts and dashboard exactly once",
   assert.equal(resolved.effective.accounts, "full");
   assert.deepEqual(resolved.dashboardDependencies, ["fullAccounts", "loyalty"]);
   assertTotals(state, 440, 740);
+  assert.deepEqual(calculateEstimate(state).totals, { min: 432, max: 672 });
+  assert.deepEqual(calculateEstimate(state).discountTotals, { min: 8, max: 68 });
   assert.equal(lineNames(state).filter((name) => name === "Professional checkout").length, 1);
   assert.equal(lineNames(state).filter((name) => name === "Full accounts & login suite").length, 1);
 });
@@ -346,8 +403,19 @@ test("custom-priced items change the completion flag but not the known subtotal"
   state.multilingual = "3";
   state.translation = "human";
   const quote = calculateEstimate(state);
-  assert.deepEqual(quote.totals, { min: base.min + 30, max: base.max + 30 });
+  assert.deepEqual(quote.originalTotals, { min: base.min + 30, max: base.max + 30 });
   assert.deepEqual(quote.unpriced, ["Interactive restaurant menu", "Professional human translation", "Domain & hosting assistance"]);
+});
+
+test("unpriced items stay unpriced while the known development subtotal receives the discount", () => {
+  const state = createInitialState();
+  Object.assign(state, { loyalty: true, menuTier: "interactive", domainAssistance: true });
+  const quote = calculateEstimate(state);
+  assert.deepEqual(quote.unpriced, ["Interactive restaurant menu", "Domain & hosting assistance"]);
+  assert.deepEqual(quote.originalTotals, { min: 440, max: 740 });
+  assert.deepEqual(quote.discountTotals, { min: 8, max: 68 });
+  assert.deepEqual(quote.totals, { min: 432, max: 672 });
+  assert.equal(quote.lines.some((line) => /discount/i.test(line.name)), false);
 });
 
 test("all priced quote lines add to the advertised totals in a dense configuration", () => {
@@ -407,6 +475,9 @@ test("configuration codes round-trip the state and exact saved quote", () => {
   assert.deepEqual(decoded, snapshot);
   assert.equal(decoded.schemaVersion, SCHEMA_VERSION);
   assert.equal(decoded.pricingVersion, PRICING_VERSION);
+  assert.equal(decoded.quote.money.discountRuleVersion, DISCOUNT_RULE_VERSION);
+  assert.deepEqual(decoded.quote.originalTotals, calculateEstimate(state).originalTotals);
+  assert.deepEqual(decoded.quote.discountTotals, calculateEstimate(state).discountTotals);
   assert.deepEqual(decoded.quote.totals, calculateEstimate(state).totals);
   assert.equal(decoded.hosting.byoPlatform, "Vércel 日本");
   assert.deepEqual(restoreConfiguration(decoded), snapshot.configuration);
@@ -417,10 +488,41 @@ test("decoding preserves a historical quote snapshot instead of recalculating cu
   snapshot.pricingVersion = "1900.01";
   snapshot.quote.lines = [{ name: "Historical website", price: [999, 1001], group: "Pages" }];
   snapshot.quote.totals = { min: 999, max: 1001 };
+  delete snapshot.quote.originalTotals;
+  delete snapshot.quote.discountTotals;
+  delete snapshot.quote.money;
   const decoded = decodeConfiguration(encodeConfiguration(snapshot));
   assert.equal(decoded.pricingVersion, "1900.01");
   assert.deepEqual(decoded.quote.lines, [{ name: "Historical website", price: [999, 1001], group: "Pages" }]);
   assert.deepEqual(decoded.quote.totals, { min: 999, max: 1001 });
+  assert.equal(decoded.quote.money, undefined);
+  assert.deepEqual(getQuoteMoney(decoded.quote), {
+    currency: "AUD",
+    originalCents: { min: 99_900, max: 100_100 },
+    discountCents: { min: 0, max: 0 },
+    finalCents: { min: 99_900, max: 100_100 },
+    discountRuleVersion: null,
+    thresholdCents: null,
+    rateBasisPoints: null,
+  });
+  assert.notDeepEqual(decoded.quote.totals, calculateEstimate(decoded.configuration).totals);
+});
+
+test("saved discount snapshots are never recalculated with the current rule", () => {
+  const snapshot = createQuoteSnapshot(createInitialState());
+  snapshot.pricingVersion = "historical-discount-pricing";
+  snapshot.quote.money.discountRuleVersion = "retired-discount-rule";
+  snapshot.quote.money.originalCents = { min: 53_100, max: 53_100 };
+  snapshot.quote.money.discountCents = { min: 500, max: 500 };
+  snapshot.quote.money.finalCents = { min: 52_600, max: 52_600 };
+  snapshot.quote.originalTotals = { min: 531, max: 531 };
+  snapshot.quote.discountTotals = { min: 5, max: 5 };
+  snapshot.quote.totals = { min: 526, max: 526 };
+  const decoded = decodeConfiguration(encodeConfiguration(snapshot));
+  assert.equal(decoded.quote.money.discountRuleVersion, "retired-discount-rule");
+  assert.equal(formatDiscountRuleLabel(decoded.quote.money), "20% above $400");
+  assert.deepEqual(decoded.quote.discountTotals, { min: 5, max: 5 });
+  assert.deepEqual(decoded.quote.totals, { min: 526, max: 526 });
   assert.notDeepEqual(decoded.quote.totals, calculateEstimate(decoded.configuration).totals);
 });
 
@@ -435,6 +537,9 @@ test("decoder rejects corrupted, incomplete and unsupported codes", () => {
   const unsupported = createQuoteSnapshot(createInitialState());
   unsupported.schemaVersion = SCHEMA_VERSION + 1;
   assert.throws(() => decodeConfiguration(encodeConfiguration(unsupported)), /schema .* not supported/i);
+  const inconsistent = createQuoteSnapshot(createInitialState());
+  inconsistent.quote.money.finalCents.min += 1;
+  assert.throws(() => decodeConfiguration(encodeConfiguration(inconsistent)), /discount arithmetic|currency breakdown/i);
 });
 
 test("configuration codes do not preserve personal notes or transient UI state", () => {

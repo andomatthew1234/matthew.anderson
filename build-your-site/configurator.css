@@ -620,6 +620,13 @@ textarea { min-height: 9rem; resize: vertical; line-height: 1.5; }
 .quote-line span:last-child { white-space: nowrap; }
 .quote-total { display: flex; align-items: end; justify-content: space-between; gap: 1rem; padding-block: 1.5rem 0; }
 .quote-total strong { font-size: clamp(2rem, 4vw, 3.3rem); font-weight: 400; }
+.quote-pricing { margin-top: 1.75rem; padding-top: 1.4rem; border-top: 1px solid var(--line-strong); }
+.quote-pricing__row { display: flex; justify-content: space-between; gap: 1.25rem; padding-block: 0.42rem; line-height: 1.45; }
+.quote-pricing__row strong { font-weight: 400; white-space: nowrap; }
+.quote-pricing__discount { color: var(--muted); }
+.quote-pricing__final { align-items: end; margin-top: 0.7rem; padding-top: 1.15rem; border-top: 1px solid var(--line); }
+.quote-pricing__final strong { font-size: clamp(2rem, 4vw, 3.3rem); line-height: 1; }
+.quote-pricing__hint { margin: 0.45rem 0; color: var(--muted); font-size: 0.92rem; }
 .quote-notice { margin: 1.5rem 0 0; padding-top: 1.25rem; border-top: 1px solid var(--line); color: var(--muted); line-height: 1.5; }
 .quote-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 1.5rem; }
 .quote-actions a { display: inline-grid; place-items: center; text-decoration: none; }
@@ -738,6 +745,8 @@ textarea { min-height: 9rem; resize: vertical; line-height: 1.5; }
 .estimate-bar p span { display: block; margin-top: 0.18rem; color: var(--muted); font-size: 0.86rem; }
 .estimate-bar__price { text-align: right; }
 .estimate-bar__price strong { font-size: 1.12rem; font-weight: 400; }
+.estimate-bar__price small { display: block; margin-top: 0.2rem; color: var(--muted); font-size: 0.72rem; }
+.estimate-bar__price small[hidden] { display: none; }
 .estimate-bar button { min-height: 40px; }
 
 .dependency-note,
@@ -826,6 +835,8 @@ summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
   .quote-total,
   .builder-footer { flex-direction: column; align-items: stretch; }
   .quote-actions { display: grid; }
+  .quote-pricing__row { display: grid; gap: 0.25rem; }
+  .quote-pricing__row strong { white-space: normal; }
   .next-step { grid-template-columns: 1fr; gap: 1.25rem; }
   .next-step__number { font-size: 3.3rem; }
   .next-step__actions { display: grid; }

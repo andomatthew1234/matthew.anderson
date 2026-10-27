@@ -1,5 +1,76 @@
 export const SCHEMA_VERSION = 1;
-export const PRICING_VERSION = "2026.10";
+export const PRICING_VERSION = "2026.10.1";
+export const DISCOUNT_RULE_VERSION = "progressive-20-over-400-v1";
+export const DISCOUNT_RULE = Object.freeze({
+  version: DISCOUNT_RULE_VERSION,
+  thresholdCents: 40_000,
+  rateBasisPoints: 2_000,
+});
+
+const toCents = (amount) => Math.round((Number(amount) || 0) * 100);
+const fromCents = (amount) => amount / 100;
+
+export function applyProgressiveDiscountCents(subtotalCents) {
+  const originalCents = Math.max(0, Math.round(Number(subtotalCents) || 0));
+  const eligibleCents = Math.max(0, originalCents - DISCOUNT_RULE.thresholdCents);
+  const discountCents = Math.round((eligibleCents * DISCOUNT_RULE.rateBasisPoints) / 10_000);
+  return { originalCents, discountCents, finalCents: originalCents - discountCents };
+}
+
+export function applyDiscount(subtotal) {
+  const result = applyProgressiveDiscountCents(toCents(subtotal));
+  return {
+    original: fromCents(result.originalCents),
+    discount: fromCents(result.discountCents),
+    final: fromCents(result.finalCents),
+  };
+}
+
+function createQuoteMoney(originalCents) {
+  const minimum = applyProgressiveDiscountCents(originalCents.min);
+  const maximum = applyProgressiveDiscountCents(originalCents.max);
+  return {
+    currency: "AUD",
+    originalCents: { min: minimum.originalCents, max: maximum.originalCents },
+    discountCents: { min: minimum.discountCents, max: maximum.discountCents },
+    finalCents: { min: minimum.finalCents, max: maximum.finalCents },
+    discountRuleVersion: DISCOUNT_RULE_VERSION,
+    thresholdCents: DISCOUNT_RULE.thresholdCents,
+    rateBasisPoints: DISCOUNT_RULE.rateBasisPoints,
+  };
+}
+
+export function getQuoteMoney(quote) {
+  if (quote?.money) return quote.money;
+  const totals = quote?.totals || { min: 0, max: 0 };
+  const originalCents = { min: toCents(totals.min), max: toCents(totals.max) };
+  return {
+    currency: "AUD",
+    originalCents,
+    discountCents: { min: 0, max: 0 },
+    finalCents: { ...originalCents },
+    discountRuleVersion: null,
+    thresholdCents: null,
+    rateBasisPoints: null,
+  };
+}
+
+export const formatMoneyCents = (cents) => `$${fromCents(cents).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+export function formatDiscountRuleLabel(money, { promotional = false } = {}) {
+  if (!money?.discountRuleVersion || !Number.isFinite(money.rateBasisPoints) || !Number.isFinite(money.thresholdCents)) return "";
+  const rate = (money.rateBasisPoints / 100).toLocaleString("en-AU", { maximumFractionDigits: 2 });
+  const threshold = formatMoneyCents(money.thresholdCents).replace(/\.00$/u, "");
+  return promotional ? `${rate}% off the amount over ${threshold}` : `${rate}% above ${threshold}`;
+}
+
+export function formatMoneyRangeCents(range, { currency = true, negative = false } = {}) {
+  const prefix = negative ? "−" : "";
+  const value = range.min === range.max
+    ? `${prefix}${formatMoneyCents(range.min)}`
+    : `${prefix}${formatMoneyCents(range.min)}–${formatMoneyCents(range.max)}`;
+  return currency ? `${value} AUD` : value;
+}
 
 export const PRICE_CONFIG = Object.freeze({
   currency: "AUD",
@@ -275,11 +346,15 @@ export function calculateEstimate(state) {
   if (effective.helpTier === "professional") ongoingCharges.push("AI provider usage for the Professional Help Centre is separate.");
   if (effective.hosting === "firebase") ongoingCharges.push("Firebase free allowances may apply; usage-based charges are possible.");
   if (effective.hosting === "byo") ongoingCharges.push("Customer-provided hosting subscriptions are paid separately.");
-  const totals = lines.reduce((sum, line) => {
-    if (!line.included) { sum.min += line.price[0]; sum.max += line.price[1]; }
+  const originalCents = lines.reduce((sum, line) => {
+    if (!line.included) { sum.min += toCents(line.price[0]); sum.max += toCents(line.price[1]); }
     return sum;
   }, { min: 0, max: 0 });
-  return { lines, unpriced, totals, dependencies: resolved.dependencies, dashboardDependencies: resolved.dashboardDependencies, backendRequired: resolved.backendReasons.length > 0, backendReasons: resolved.backendReasons, ongoingCharges: [...new Set(ongoingCharges)] };
+  const money = createQuoteMoney(originalCents);
+  const originalTotals = { min: fromCents(money.originalCents.min), max: fromCents(money.originalCents.max) };
+  const discountTotals = { min: fromCents(money.discountCents.min), max: fromCents(money.discountCents.max) };
+  const totals = { min: fromCents(money.finalCents.min), max: fromCents(money.finalCents.max) };
+  return { lines, unpriced, originalTotals, discountTotals, totals, money, dependencies: resolved.dependencies, dashboardDependencies: resolved.dashboardDependencies, backendRequired: resolved.backendReasons.length > 0, backendReasons: resolved.backendReasons, ongoingCharges: [...new Set(ongoingCharges)] };
 }
 
 export function getPageCount(state) {

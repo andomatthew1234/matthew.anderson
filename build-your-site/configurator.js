@@ -7,15 +7,18 @@ import {
   applyPreset,
   calculateEstimate,
   createInitialState,
+  formatDiscountRuleLabel,
+  formatMoneyRangeCents,
   formatPrice,
   getDashboardDependencies,
   getPageCount,
+  getQuoteMoney,
   getSelectedFeatureIds,
   normaliseState,
   requiresBackend,
   resolveDependencies,
-} from "./configurator-data.mjs?v=6";
-import { createQuoteSnapshot, decodeConfiguration, encodeConfiguration, hostingLabel, restoreConfiguration } from "./configuration-code.mjs?v=6";
+} from "./configurator-data.mjs?v=7";
+import { createQuoteSnapshot, decodeConfiguration, encodeConfiguration, hostingLabel, restoreConfiguration } from "./configuration-code.mjs?v=7";
 
 let state = createInitialState();
 let visualObserver;
@@ -40,6 +43,7 @@ const note = document.querySelector("#dependency-note");
 const toast = document.querySelector("#toast");
 const barSelection = document.querySelector("#bar-selection");
 const barTotal = document.querySelector("#bar-total");
+const barDiscount = document.querySelector("#bar-discount");
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
 const escapeHtml = (value = "") => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
@@ -236,7 +240,21 @@ function renderEstimateSection() {
   return sectionShell({ id: "estimate", number: "09 · Your website estimate", title: "Your website, your way.", intro: "Everything you've chosen, all in one place.", visual: "hosting", extraClass: "estimate-section", content: `<div class="review-list">${rows}</div>${outdated}<div class="generate-panel"><h3>Ready to see the full breakdown?</h3><p>Generate a detailed estimate locally. Nothing is submitted and no account is required.</p><button class="generate-button" type="button" data-generate ${isGenerating ? "disabled" : ""}>${isGenerating ? "Preparing..." : "Generate my estimate"}</button></div>${preparing}${quote}` });
 }
 
-function quoteTotal(quote) { return quote.totals.min === quote.totals.max ? `$${quote.totals.min} AUD` : `$${quote.totals.min}–${quote.totals.max} AUD`; }
+function quoteTotal(quote) { return formatMoneyRangeCents(getQuoteMoney(quote).finalCents); }
+
+function renderPricingSummary(quote) {
+  const money = getQuoteMoney(quote);
+  const hasDiscount = money.discountCents.max > 0;
+  const ruleLabel = formatDiscountRuleLabel(money);
+  const known = quote.unpriced.length ? "Known " : "";
+  if (!money.discountRuleVersion) {
+    return `<div class="quote-total"><span>${known}historical estimated total</span><strong>${formatMoneyRangeCents(money.finalCents)}</strong></div>`;
+  }
+  const discount = hasDiscount
+    ? `<div class="quote-pricing__row quote-pricing__discount"><span>Discount (${escapeHtml(ruleLabel)})</span><strong>${formatMoneyRangeCents(money.discountCents, { negative: true })}</strong></div>`
+    : `<p class="quote-pricing__hint">The progressive discount applies ${escapeHtml(ruleLabel)}.</p>`;
+  return `<section class="quote-pricing" aria-label="Website estimate"><p class="quote-group-title">Website estimate</p><div class="quote-pricing__row"><span>${known}Original estimate</span><strong>${formatMoneyRangeCents(money.originalCents)}</strong></div>${discount}<div class="quote-pricing__row quote-pricing__final"><span>Your ${known.toLowerCase()}estimated total</span><strong>${formatMoneyRangeCents(money.finalCents)}</strong></div></section>`;
+}
 
 function renderQuote(quote, historical = false) {
   const groups = [...new Set(quote.lines.map((line) => line.group))];
@@ -246,7 +264,7 @@ function renderQuote(quote, historical = false) {
   const ongoing = quote.ongoingCharges?.length ? `<section class="quote-group"><p class="quote-group-title">Possible ongoing or third-party charges</p><ul>${quote.ongoingCharges.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section>` : "";
   const codePanel = currentCode ? renderCodePanel() : "";
   const nextSteps = currentCode && !quoteOutdated ? renderWhatsNext() : "";
-  return `<article class="quote-panel" id="generated-quote" tabindex="-1"><header class="quote-header"><div><p class="section-number">${historical ? "Recovered historical estimate" : "BuiltByMatthew"}</p><h3>Indicative estimate</h3></div><p>Pricing ${escapeHtml(restoredSnapshot?.pricingVersion || PRICING_VERSION)}</p></header>${historical ? '<p class="historical-note">This is the original saved quote snapshot. It has not been recalculated using current prices.</p>' : ""}${groupHtml}${unpriced}${dependencyHtml}<section class="quote-group"><p class="quote-group-title">Hosting</p><p>${escapeHtml(restoredSnapshot?.hosting?.label || hostingLabel(state.hosting))}</p></section>${ongoing}<div class="quote-total"><span>${quote.unpriced.length ? "Known subtotal" : "Estimated total"}</span><strong>${quoteTotal(quote)}</strong></div>${quote.unpriced.length ? '<p><strong>Complete total: subject to confirmation.</strong></p>' : ""}<p class="quote-notice">This is an indicative estimate, not a binding contract. Domain, hosting and third-party service fees may be additional.</p><div class="quote-actions"><button class="quote-action" type="button" data-copy>Copy estimate</button><button class="quote-action" type="button" data-edit>Edit selections</button><button class="quote-action" type="button" data-print>Print estimate</button><button class="quote-action" type="button" data-reset>Start again</button></div>${historical ? "" : `<div class="continue-panel"><h4>Happy with this starting point?</h4><p>Continuing saves a shareable copy of this indicative estimate. It does not create a contract, account or payment.</p><button class="generate-button" type="button" data-continue>I'm good with that quote, continue</button></div>`}${codePanel}${nextSteps}</article>`;
+  return `<article class="quote-panel" id="generated-quote" tabindex="-1"><header class="quote-header"><div><p class="section-number">${historical ? "Recovered historical estimate" : "BuiltByMatthew"}</p><h3>Indicative estimate</h3></div><p>Pricing ${escapeHtml(restoredSnapshot?.pricingVersion || PRICING_VERSION)}</p></header>${historical ? '<p class="historical-note">This is the original saved quote snapshot. It has not been recalculated using current prices.</p>' : ""}${groupHtml}${unpriced}${dependencyHtml}<section class="quote-group"><p class="quote-group-title">Hosting</p><p>${escapeHtml(restoredSnapshot?.hosting?.label || hostingLabel(state.hosting))}</p></section>${ongoing}${renderPricingSummary(quote)}${quote.unpriced.length ? '<p><strong>Complete total: subject to confirmation.</strong></p>' : ""}<p class="quote-notice">This is an indicative estimate, not a binding contract. Domain, hosting and third-party service fees may be additional.</p><div class="quote-actions"><button class="quote-action" type="button" data-copy>Copy estimate</button><button class="quote-action" type="button" data-edit>Edit selections</button><button class="quote-action" type="button" data-print>Print estimate</button><button class="quote-action" type="button" data-reset>Start again</button></div>${historical ? "" : `<div class="continue-panel"><h4>Happy with this starting point?</h4><p>Continuing saves a shareable copy of this indicative estimate. It does not create a contract, account or payment.</p><button class="generate-button" type="button" data-continue>I'm good with that quote, continue</button></div>`}${codePanel}${nextSteps}</article>`;
 }
 
 function renderCodePanel() {
@@ -281,9 +299,12 @@ function renderAll({ preserveScroll = false, focusSelector = "" } = {}) {
 }
 
 function updateSummaryBar() {
-  const estimate = calculateEstimate(state); const featureCount = getSelectedFeatureIds(state).length + (state.dashboardExplicit || getDashboardDependencies(state).length ? 1 : 0);
+  const estimate = restoredSnapshot?.quote || calculateEstimate(state); const featureCount = getSelectedFeatureIds(state).length + (state.dashboardExplicit || getDashboardDependencies(state).length ? 1 : 0);
+  const money = getQuoteMoney(estimate);
   barSelection.textContent = `${getPageCount(state)} page${getPageCount(state) === 1 ? "" : "s"} · ${featureCount} feature${featureCount === 1 ? "" : "s"}`;
   barTotal.textContent = quoteTotal(estimate);
+  barDiscount.textContent = formatDiscountRuleLabel(money, { promotional: true });
+  barDiscount.hidden = money.discountCents.max === 0;
 }
 
 function cancelGeneration() { clearTimeout(generationTimer); isGenerating = false; }
@@ -335,7 +356,15 @@ function generateQuoteText() {
   quote.lines.forEach((line) => { if (line.group !== group) { group = line.group; lines.push(group.toUpperCase()); } lines.push(`${line.name}: ${line.included ? "Included" : displayPrice(line.price)}`); });
   quote.unpriced.forEach((item) => lines.push(`${item}: To be confirmed`));
   lines.push("", "HOSTING", restoredSnapshot?.hosting?.label || hostingLabel(state.hosting));
-  lines.push("", `${quote.unpriced.length ? "Known subtotal" : "Estimated total"}: ${quoteTotal(quote)}`);
+  const money = getQuoteMoney(quote);
+  if (money.discountRuleVersion) {
+    lines.push("", "WEBSITE ESTIMATE", `${quote.unpriced.length ? "Known original estimate" : "Original estimate"}: ${formatMoneyRangeCents(money.originalCents)}`);
+    if (money.discountCents.max > 0) lines.push(`Discount (${formatDiscountRuleLabel(money)}): ${formatMoneyRangeCents(money.discountCents, { negative: true })}`);
+    else lines.push(`Progressive discount: Applies ${formatDiscountRuleLabel(money)}`);
+    lines.push(`Your ${quote.unpriced.length ? "known " : ""}estimated total: ${formatMoneyRangeCents(money.finalCents)}`);
+  } else {
+    lines.push("", `${quote.unpriced.length ? "Known historical total" : "Historical estimated total"}: ${formatMoneyRangeCents(money.finalCents)}`);
+  }
   lines.push("", "This is an indicative estimate, not a binding contract. Third-party charges may apply.");
   return lines.join("\n");
 }
