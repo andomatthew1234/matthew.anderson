@@ -108,7 +108,14 @@ async function assertDedicatedVisuals(page, name) {
   ];
   for (const [selector, key, filename] of checks) {
     await page.locator(selector).click();
-    await page.waitForTimeout(240);
+    await page.waitForFunction(({ expectedKey, expectedFile }) => {
+      const active = document.querySelector("#visual-stage [data-active-visual]");
+      const image = document.querySelector("#visual-stage img");
+      return active?.dataset.activeVisual === expectedKey
+        && image?.currentSrc.endsWith(expectedFile)
+        && image.naturalWidth === 1920
+        && image.naturalHeight === 1080;
+    }, { expectedKey: key, expectedFile: filename }, { timeout: 3_000 });
     const active = await page.locator("#visual-stage [data-active-visual]").getAttribute("data-active-visual");
     const image = await page.locator("#visual-stage img").evaluate((element) => ({ src: element.currentSrc, width: element.naturalWidth, height: element.naturalHeight }));
     assert(active === key, `${name}: ${selector} activated ${active}, expected ${key}`);
