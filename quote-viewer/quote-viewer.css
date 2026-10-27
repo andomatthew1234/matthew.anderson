@@ -10,4 +10,4 @@
 .viewer-meta strong, .viewer-meta span { display: block; }
 .viewer-meta span { margin-top: 0.35rem; color: var(--muted); }
 @media (max-width: 620px) { .viewer-meta { grid-template-columns: 1fr; } }
-@media print { .viewer-intro, .viewer-input, .builder-header, .builder-footer { display: none !important; } .viewer-main { padding: 0; } }
+@media print { .viewer-intro, .viewer-input, .builder-header, builtbymatthew-footer { display: none !important; } .viewer-main { padding: 0; } }
