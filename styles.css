@@ -116,12 +116,14 @@ a {
 
 .hero {
   position: relative;
+  z-index: 2;
   display: flex;
   min-height: calc(100svh - clamp(4.75rem, 8vw, 6.75rem));
   flex-direction: column;
   justify-content: space-between;
   padding-top: clamp(4.5rem, 10vh, 8.75rem);
   padding-bottom: clamp(1.5rem, 3.5vh, 3rem);
+  background: var(--paper);
 }
 
 .hero-copy {
@@ -465,8 +467,10 @@ a {
 
 .portfolio-section {
   position: relative;
+  z-index: 1;
   scroll-margin-top: 1.5rem;
   border-top: 1px solid rgba(24, 24, 21, 0.38);
+  background: var(--paper);
   padding-block: clamp(5.5rem, 12vh, 10rem) clamp(10rem, 20vh, 14rem);
 }
 
@@ -476,6 +480,7 @@ a {
   grid-template-columns: minmax(15rem, 32%) minmax(0, 68%);
   align-items: center;
   gap: clamp(2.5rem, 5vw, 7rem);
+  background: var(--paper);
 }
 
 .portfolio-heading-group {

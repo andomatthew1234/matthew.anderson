@@ -48,6 +48,19 @@ async function runScenario(name, viewport, reducedMotion = "no-preference") {
   if (viewport.width >= 768 && reducedMotion === "no-preference") {
     assert(snapshot.horizontalTrigger, `${name}: desktop ScrollTrigger was not created`);
     assert(snapshot.maxScroll > snapshot.triggerEnd, `${name}: pinned gallery cannot fully release`);
+    const stalePinIsContained = await page.evaluate(() => {
+      const stage = document.querySelector(".portfolio-stage");
+      const originalStyle = stage.getAttribute("style");
+      stage.style.cssText += ";position:fixed;top:12vh;right:var(--gutter);left:var(--gutter);z-index:1";
+      const heroRect = document.querySelector(".hero-title").getBoundingClientRect();
+      const pointX = heroRect.left + Math.min(80, heroRect.width / 4);
+      const pointY = heroRect.top + Math.min(80, heroRect.height / 4);
+      const topElement = document.elementFromPoint(pointX, pointY);
+      if (originalStyle === null) stage.removeAttribute("style");
+      else stage.setAttribute("style", originalStyle);
+      return Boolean(topElement?.closest(".hero"));
+    });
+    assert(stalePinIsContained, `${name}: a stale pinned gallery can overlap the homepage hero`);
     const triggerRange = await page.evaluate(() => {
       const trigger = window.ScrollTrigger.getById("portfolio-horizontal");
       const viewport = document.querySelector(".portfolio-viewport");
@@ -120,11 +133,51 @@ async function runScenario(name, viewport, reducedMotion = "no-preference") {
   await context.close();
 }
 
+async function runResizeBoundaryScenario() {
+  const context = await browser.newContext({ viewport: { width: 1600, height: 950 } });
+  const page = await context.newPage();
+  await page.goto(baseUrl, { waitUntil: "load" });
+  await page.waitForSelector(".project-card");
+  await page.waitForTimeout(300);
+
+  await page.evaluate(() => window.scrollTo({ top: 910, behavior: "instant" }));
+  await page.setViewportSize({ width: 1450, height: 850 });
+  await page.waitForTimeout(500);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await page.waitForTimeout(300);
+
+  const snapshot = await page.evaluate(() => {
+    const section = document.querySelector(".portfolio-section");
+    const stage = document.querySelector(".portfolio-stage");
+    const trigger = window.ScrollTrigger?.getById("portfolio-horizontal");
+    const expectedStart =
+      section.offsetTop +
+      section.clientTop +
+      Number.parseFloat(getComputedStyle(section).paddingTop) -
+      innerHeight * 0.12;
+    return {
+      triggerStart: trigger?.start ?? null,
+      expectedStart,
+      stagePosition: getComputedStyle(stage).position,
+      stageTop: stage.getBoundingClientRect().top,
+    };
+  });
+
+  assert(
+    Math.abs(snapshot.triggerStart - snapshot.expectedStart) < 2,
+    `resize-boundary: trigger start was corrupted (${snapshot.triggerStart}; expected ${snapshot.expectedStart})`,
+  );
+  assert(snapshot.stagePosition !== "fixed", "resize-boundary: gallery stayed fixed over the hero after returning to top");
+  results.push({ name: "resize-boundary", ...snapshot });
+  await context.close();
+}
+
 try {
   await runScenario("desktop", { width: 1440, height: 900 });
   await runScenario("tablet", { width: 1024, height: 768 });
   await runScenario("mobile", { width: 390, height: 844 });
   await runScenario("reduced-motion", { width: 1440, height: 900 }, "reduce");
+  await runResizeBoundaryScenario();
   console.log(JSON.stringify({ ok: true, results }, null, 2));
 } finally {
   await browser.close();

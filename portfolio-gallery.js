@@ -77,6 +77,11 @@
   };
 
   const getOverflow = () => Math.max(0, track.scrollWidth - viewport.clientWidth);
+  const getPinStart = () =>
+    section.offsetTop +
+    section.clientTop +
+    Number.parseFloat(getComputedStyle(section).paddingTop) -
+    window.innerHeight * 0.12;
 
   const calculateTargetProgresses = () => {
     const overflow = getOverflow();
@@ -186,9 +191,10 @@
           scrollTrigger: {
             id: "portfolio-horizontal",
             trigger: stage,
-            start: "top 12%",
+            start: getPinStart,
             end: () => `+=${Math.max(getOverflow() * 1.35, window.innerHeight * 2.4)}`,
             pin: true,
+            pinType: "transform",
             pinSpacing: true,
             scrub: 0.65,
             anticipatePin: 1,
@@ -254,12 +260,21 @@
     ),
   ]).then(() => window.ScrollTrigger?.refresh());
 
-  window.addEventListener(
-    "pagehide",
-    () => {
-      mobileObserver?.disconnect();
-      gsapMatchMedia?.revert();
-    },
-    { once: true },
-  );
+  const refreshPinnedLayout = () => {
+    requestAnimationFrame(() => {
+      window.ScrollTrigger?.refresh();
+      window.ScrollTrigger?.update();
+    });
+  };
+
+  window.addEventListener("pageshow", refreshPinnedLayout);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshPinnedLayout();
+  });
+
+  window.addEventListener("pagehide", (event) => {
+    if (event.persisted) return;
+    mobileObserver?.disconnect();
+    gsapMatchMedia?.revert();
+  });
 })();
