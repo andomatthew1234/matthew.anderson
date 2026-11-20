@@ -694,7 +694,15 @@ a {
   transform: translate(-7px, -8px);
 }
 
+.dream-grid-link:is(:hover, :focus-visible) .dream-float-a {
+  transform: translate(-7px, -8px);
+}
+
 .dream-card:hover .dream-float-b {
+  transform: translate(7px, -5px);
+}
+
+.dream-grid-link:is(:hover, :focus-visible) .dream-float-b {
   transform: translate(7px, -5px);
 }
 
@@ -702,7 +710,15 @@ a {
   transform: translate(6px, 7px);
 }
 
+.dream-grid-link:is(:hover, :focus-visible) .dream-float-c {
+  transform: translate(6px, 7px);
+}
+
 .dream-card:hover .dream-float-d {
+  transform: translate(-7px, 6px);
+}
+
+.dream-grid-link:is(:hover, :focus-visible) .dream-float-d {
   transform: translate(-7px, 6px);
 }
 
@@ -720,7 +736,16 @@ a {
   transform: rotate(8deg) scale(1.035);
 }
 
+.dream-grid-link:is(:hover, :focus-visible) .dream-card--mobile .dream-orbit,
+.dream-grid-link:is(:hover, :focus-visible) .dream-card--identity .dream-orbit--inner {
+  transform: rotate(8deg) scale(1.035);
+}
+
 .dream-card--system:hover .dream-network {
+  transform: rotate(-2deg) scale(1.025);
+}
+
+.dream-grid-link:is(:hover, :focus-visible) .dream-card--system .dream-network {
   transform: rotate(-2deg) scale(1.025);
 }
 
@@ -728,7 +753,15 @@ a {
   transform: rotate(4deg) scale(1.02);
 }
 
+.dream-grid-link:is(:hover, :focus-visible) .dream-card--identity .dream-sweep {
+  transform: rotate(4deg) scale(1.02);
+}
+
 .dream-card--identity:hover .dream-spark {
+  transform: rotate(45deg) scale(1.18);
+}
+
+.dream-grid-link:is(:hover, :focus-visible) .dream-card--identity .dream-spark {
   transform: rotate(45deg) scale(1.18);
 }
 
@@ -756,13 +789,13 @@ a {
   transform: translateY(-0.55rem);
 }
 
-.has-dream-grid .dream-card:nth-child(2),
-.has-dream-grid .dream-card:nth-child(5) {
+.has-dream-grid .dream-grid-item:nth-child(2),
+.has-dream-grid .dream-grid-item:nth-child(5) {
   transition-delay: 80ms;
 }
 
-.has-dream-grid .dream-card:nth-child(3),
-.has-dream-grid .dream-card:nth-child(6) {
+.has-dream-grid .dream-grid-item:nth-child(3),
+.has-dream-grid .dream-grid-item:nth-child(6) {
   transition-delay: 160ms;
 }
 
