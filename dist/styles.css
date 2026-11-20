@@ -514,6 +514,79 @@ a {
   padding: 0 clamp(0rem, 2vw, 2.5rem) 0 0;
 }
 
+.dream-grid-item {
+  min-width: 0;
+}
+
+.dream-grid-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dream-grid-link:focus-visible {
+  outline-offset: 0.6rem;
+}
+
+.dream-card-copy {
+  max-width: 29rem;
+  padding-top: clamp(1.4rem, 2.6vw, 2rem);
+}
+
+.dream-card-copy h3 {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0;
+  font-size: clamp(1.75rem, 2.5vw, 2.55rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.dream-card-copy p {
+  max-width: 28rem;
+  margin: 1rem 0 0;
+  font-size: clamp(1rem, 1.15vw, 1.16rem);
+  line-height: 1.45;
+}
+
+.dream-card-icon {
+  display: inline-grid;
+  width: 1.05em;
+  height: 1.05em;
+  place-items: center;
+}
+
+.dream-card-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
+}
+
+.dream-card-copy h3::after {
+  position: absolute;
+  right: 0;
+  bottom: -0.35rem;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 420ms var(--ease-out);
+}
+
+.dream-grid-link:is(:hover, :focus-visible) .dream-card-copy h3::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
 .dream-card {
   --dream-x: 0px;
   --dream-y: 0px;
@@ -594,12 +667,26 @@ a {
   transform: translateY(-0.55rem);
 }
 
+.dream-grid-link:is(:hover, :focus-visible) .dream-card {
+  color: var(--paper);
+  transform: translateY(-0.55rem);
+}
+
 .dream-card:hover::before {
   border-color: #7b2d2b;
   transform: translate(1.02rem, 1.02rem) rotate(0.65deg);
 }
 
+.dream-grid-link:is(:hover, :focus-visible) .dream-card::before {
+  border-color: #7b2d2b;
+  transform: translate(1.02rem, 1.02rem) rotate(0.65deg);
+}
+
 .dream-card:hover::after {
+  clip-path: circle(145% at var(--dream-origin-x) var(--dream-origin-y));
+}
+
+.dream-grid-link:is(:hover, :focus-visible) .dream-card::after {
   clip-path: circle(145% at var(--dream-origin-x) var(--dream-origin-y));
 }
 
@@ -624,6 +711,10 @@ a {
   transform: translate(8px, -8px) rotate(-2deg);
 }
 
+.dream-grid-link:is(:hover, :focus-visible) .dream-card--browser .dream-cursor {
+  transform: translate(8px, -8px) rotate(-2deg);
+}
+
 .dream-card--mobile:hover .dream-orbit,
 .dream-card--identity:hover .dream-orbit--inner {
   transform: rotate(8deg) scale(1.035);
@@ -642,13 +733,13 @@ a {
 }
 
 .has-dream-grid .dream-grid-heading,
-.has-dream-grid .dream-card {
+.has-dream-grid .dream-grid-item {
   opacity: 0;
   transform: translateY(2rem);
 }
 
 .has-dream-grid .dream-grid-heading.is-visible,
-.has-dream-grid .dream-card.is-visible {
+.has-dream-grid .dream-grid-item.is-visible {
   opacity: 1;
   transform: translateY(0);
   transition:
@@ -658,6 +749,10 @@ a {
 }
 
 .has-dream-grid .dream-card.is-visible:hover {
+  transform: translateY(-0.55rem);
+}
+
+.has-dream-grid .dream-grid-link.is-visible:is(:hover, :focus-visible) .dream-card {
   transform: translateY(-0.55rem);
 }
 
@@ -1229,6 +1324,10 @@ a {
   .dream-card::after {
     clip-path: circle(0 at 50% 50%);
   }
+
+  .dream-grid-link:is(:hover, :focus-visible) .dream-card::after {
+    clip-path: circle(0 at 50% 50%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1262,6 +1361,7 @@ a {
   .project-details,
   .project-visual,
   .dream-grid-heading,
+  .dream-grid-item,
   .dream-card {
     opacity: 1 !important;
     transform: none !important;

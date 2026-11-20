@@ -3,6 +3,7 @@ const workMenuWrap = document.querySelector(".work-menu-wrap");
 const workMenuButton = document.querySelector(".work-link");
 const workMenu = document.querySelector(".work-menu");
 const dreamGridHeading = document.querySelector(".dream-grid-heading");
+const dreamGridItems = Array.from(document.querySelectorAll(".dream-grid-item"));
 const dreamCards = Array.from(document.querySelectorAll(".dream-card"));
 
 if (projectLink) {
@@ -80,11 +81,11 @@ if (workMenuWrap && workMenuButton && workMenu) {
   });
 }
 
-if (dreamGridHeading && dreamCards.length) {
+if (dreamGridHeading && dreamGridItems.length && dreamCards.length) {
   document.documentElement.classList.add("has-dream-grid");
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const revealTargets = [dreamGridHeading, ...dreamCards];
+  const revealTargets = [dreamGridHeading, ...dreamGridItems];
 
   if (reducedMotion || !("IntersectionObserver" in window)) {
     revealTargets.forEach((target) => target.classList.add("is-visible"));

@@ -26,6 +26,13 @@ async function runScenario(name, viewport, reducedMotion = "no-preference") {
 
   await page.goto(baseUrl, { waitUntil: "load" });
   await page.waitForSelector(".project-card");
+  await page.locator(".portfolio-section").scrollIntoViewIfNeeded();
+  await page.waitForFunction(
+    () => [...document.querySelectorAll(".project-card img")].every((image) => image.complete && image.naturalWidth > 0),
+    undefined,
+    { timeout: 5_000 },
+  );
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(300);
 
   const snapshot = await page.evaluate(() => ({

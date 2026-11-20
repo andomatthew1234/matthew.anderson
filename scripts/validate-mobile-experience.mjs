@@ -69,7 +69,10 @@ async function assertHomepage(root, width) {
       count: cards.length,
       columns: getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length,
       square: firstCard ? Math.abs(firstCard.width - firstCard.height) <= 1 : false,
-      nonInteractive: section.querySelectorAll("a, button, input, select, textarea, [tabindex]").length === 0,
+      links: [...section.querySelectorAll("a")].map((link) => link.getAttribute("href")),
+      placeholdersInteractive: section.querySelectorAll(".dream-grid-item:not(.dream-grid-link) a, .dream-grid-item:not(.dream-grid-link) button, .dream-grid-item:not(.dream-grid-link) [tabindex]").length > 0,
+      websiteTitle: section.querySelector(".dream-card-copy h3")?.textContent.trim(),
+      websiteCopy: section.querySelector(".dream-card-copy p")?.textContent.replace(/\s+/g, " ").trim(),
       afterHero: section.previousElementSibling?.classList.contains("hero") === true,
       beforePortfolio: section.nextElementSibling?.classList.contains("portfolio-section") === true,
     };
@@ -79,7 +82,10 @@ async function assertHomepage(root, width) {
   assert(dreamGrid.count === 6, `${root.pathname} ${width}: expected six dream-grid cards`);
   assert(dreamGrid.columns === expectedColumns, `${root.pathname} ${width}: dream grid has ${dreamGrid.columns} columns, expected ${expectedColumns}`);
   assert(dreamGrid.square, `${root.pathname} ${width}: dream-grid cards are not square`);
-  assert(dreamGrid.nonInteractive, `${root.pathname} ${width}: placeholder dream-grid cards must not be interactive`);
+  assert(JSON.stringify(dreamGrid.links) === JSON.stringify(["./build-your-site/"]), `${root.pathname} ${width}: website card has the wrong link`);
+  assert(!dreamGrid.placeholdersInteractive, `${root.pathname} ${width}: placeholder dream-grid cards must not be interactive`);
+  assert(dreamGrid.websiteTitle === "Websites", `${root.pathname} ${width}: website card title is incorrect`);
+  assert(dreamGrid.websiteCopy === "Put your idea on the web with a website built from scratch for your organisation, business, or project.", `${root.pathname} ${width}: website card copy is incorrect`);
   assert(dreamGrid.afterHero && dreamGrid.beforePortfolio, `${root.pathname} ${width}: dream grid is not between hero and portfolio`);
   if (width <= 360) {
     const title = await page.locator(".title-mask:first-child .title-line").evaluate((node) => ({
