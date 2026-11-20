@@ -59,6 +59,28 @@ async function assertNavigation(root, width) {
 
 async function assertHomepage(root, width) {
   const { context, page } = await open(root, "", width);
+  const dreamGrid = await page.evaluate(() => {
+    const section = document.querySelector(".dream-grid-section");
+    const grid = document.querySelector(".dream-grid");
+    const cards = [...document.querySelectorAll(".dream-card")];
+    const firstCard = cards[0]?.getBoundingClientRect();
+    return {
+      title: document.querySelector("#dream-grid-title")?.textContent.trim(),
+      count: cards.length,
+      columns: getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length,
+      square: firstCard ? Math.abs(firstCard.width - firstCard.height) <= 1 : false,
+      nonInteractive: section.querySelectorAll("a, button, input, select, textarea, [tabindex]").length === 0,
+      afterHero: section.previousElementSibling?.classList.contains("hero") === true,
+      beforePortfolio: section.nextElementSibling?.classList.contains("portfolio-section") === true,
+    };
+  });
+  const expectedColumns = width <= 600 ? 1 : width <= 900 ? 2 : 3;
+  assert(dreamGrid.title === "Anything you can dream of.", `${root.pathname} ${width}: dream-grid title is incorrect`);
+  assert(dreamGrid.count === 6, `${root.pathname} ${width}: expected six dream-grid cards`);
+  assert(dreamGrid.columns === expectedColumns, `${root.pathname} ${width}: dream grid has ${dreamGrid.columns} columns, expected ${expectedColumns}`);
+  assert(dreamGrid.square, `${root.pathname} ${width}: dream-grid cards are not square`);
+  assert(dreamGrid.nonInteractive, `${root.pathname} ${width}: placeholder dream-grid cards must not be interactive`);
+  assert(dreamGrid.afterHero && dreamGrid.beforePortfolio, `${root.pathname} ${width}: dream grid is not between hero and portfolio`);
   if (width <= 360) {
     const title = await page.locator(".title-mask:first-child .title-line").evaluate((node) => ({
       width: node.getBoundingClientRect().width,

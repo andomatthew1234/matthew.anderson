@@ -2,6 +2,8 @@ const projectLink = document.querySelector(".project-link");
 const workMenuWrap = document.querySelector(".work-menu-wrap");
 const workMenuButton = document.querySelector(".work-link");
 const workMenu = document.querySelector(".work-menu");
+const dreamGridHeading = document.querySelector(".dream-grid-heading");
+const dreamCards = Array.from(document.querySelectorAll(".dream-card"));
 
 if (projectLink) {
   projectLink.addEventListener("pointerenter", (event) => {
@@ -75,5 +77,48 @@ if (workMenuWrap && workMenuButton && workMenu) {
       event.preventDefault();
       setMenuOpen(false, { restoreFocus: true });
     }
+  });
+}
+
+if (dreamGridHeading && dreamCards.length) {
+  document.documentElement.classList.add("has-dream-grid");
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const revealTargets = [dreamGridHeading, ...dreamCards];
+
+  if (reducedMotion || !("IntersectionObserver" in window)) {
+    revealTargets.forEach((target) => target.classList.add("is-visible"));
+  } else {
+    const revealObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        });
+      },
+      { rootMargin: "0px 0px -8%", threshold: 0.12 },
+    );
+
+    revealTargets.forEach((target) => revealObserver.observe(target));
+  }
+
+  dreamCards.forEach((card) => {
+    card.addEventListener("pointermove", (event) => {
+      if (event.pointerType === "touch" || reducedMotion) return;
+
+      const bounds = card.getBoundingClientRect();
+      const relativeX = (event.clientX - bounds.left) / bounds.width;
+      const relativeY = (event.clientY - bounds.top) / bounds.height;
+      card.style.setProperty("--dream-x", `${(relativeX - 0.5) * 10}px`);
+      card.style.setProperty("--dream-y", `${(relativeY - 0.5) * 10}px`);
+      card.style.setProperty("--dream-origin-x", `${relativeX * 100}%`);
+      card.style.setProperty("--dream-origin-y", `${relativeY * 100}%`);
+    });
+
+    card.addEventListener("pointerleave", () => {
+      card.style.setProperty("--dream-x", "0px");
+      card.style.setProperty("--dream-y", "0px");
+    });
   });
 }
