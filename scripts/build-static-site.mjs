@@ -34,6 +34,7 @@ const entries = [
   "terms",
   "confirmation",
   "build-your-site",
+  "build-your-app",
   "quote-viewer",
   "websites",
   "apps",
@@ -51,6 +52,7 @@ for (const entry of entries) {
 const footerPages = [
   { file: "index.html", siteRoot: "./" },
   { file: "build-your-site/index.html", siteRoot: "../" },
+  { file: "build-your-app/index.html", siteRoot: "../" },
   { file: "quote-viewer/index.html", siteRoot: "../" },
   { file: "terms/index.html", siteRoot: "../" },
   { file: "websites/index.html", siteRoot: "../" },
