@@ -478,6 +478,14 @@ a {
   padding-block: clamp(5.5rem, 12vh, 10rem) clamp(10rem, 20vh, 14rem);
 }
 
+.websites-page .portfolio-section {
+  border-top: 0;
+}
+
+.websites-page .site-main {
+  padding-bottom: clamp(4rem, 8vh, 7rem);
+}
+
 .dream-grid-section {
   position: relative;
   z-index: 1;

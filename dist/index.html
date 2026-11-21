@@ -10,14 +10,10 @@
     <meta name="theme-color" content="#f3efe6" />
     <title>Matthew Anderson — Web Designer &amp; Developer</title>
     <link rel="icon" type="image/png" href="./favicon.png" />
-    <link rel="stylesheet" href="./styles.css?v=6" />
+    <link rel="stylesheet" href="./styles.css?v=7" />
     <link rel="stylesheet" href="./components/mobile-navigation.css?v=1" />
     <link rel="stylesheet" href="./components/site-footer.css?v=2" data-site-footer-styles />
     <script src="./script.js?v=3" defer></script>
-    <script src="./vendor/gsap/gsap.min.js" defer></script>
-    <script src="./vendor/gsap/ScrollTrigger.min.js" defer></script>
-    <script src="./portfolio-projects.js" defer></script>
-    <script src="./portfolio-gallery.js?v=3" defer></script>
     <script type="module" src="./components/mobile-navigation.js?v=1"></script>
     <script type="module" src="./components/site-footer.js?v=1"></script>
   </head>
@@ -32,7 +28,7 @@
         </a>
 
         <nav class="nav-links" aria-label="Main menu">
-          <a href="#work">Work</a>
+          <a href="./websites/">Work</a>
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
         </nav>
@@ -75,9 +71,9 @@
                     aria-hidden="true"
                     inert
                   >
-                    <a class="work-option" href="#work" role="menuitem">
+                    <a class="work-option" href="./websites/" role="menuitem">
                       <span>View featured sites</span>
-                      <span class="option-arrow" aria-hidden="true">↓</span>
+                      <span class="option-arrow" aria-hidden="true">→</span>
                     </a>
 
                     <a
@@ -118,7 +114,7 @@
           </header>
 
           <div class="dream-grid">
-            <a class="dream-grid-item dream-grid-link" href="./build-your-site/">
+            <a class="dream-grid-item dream-grid-link" href="./websites/">
               <figure class="dream-card dream-card--browser" aria-hidden="true">
                 <svg class="dream-card-art" viewBox="0 0 320 320" fill="none">
                   <rect class="dream-line dream-frame" x="43" y="52" width="234" height="182" rx="8" />
@@ -282,63 +278,6 @@
           </div>
         </section>
 
-        <section class="portfolio-section" id="work" aria-labelledby="portfolio-title">
-          <div class="portfolio-stage">
-            <div class="portfolio-heading-group">
-              <div>
-                <p class="portfolio-kicker">Selected work</p>
-                <h2 class="portfolio-title" id="portfolio-title">Don't take my word for it.</h2>
-                <p class="portfolio-intro">
-                  Take a look at some of the websites I built.
-                </p>
-              </div>
-
-              <div class="portfolio-nav" aria-label="Portfolio gallery controls">
-                <div class="portfolio-progress" aria-hidden="true">
-                  <span class="portfolio-progress-line is-active"></span>
-                  <span class="portfolio-progress-line"></span>
-                  <span class="portfolio-progress-line"></span>
-                  <span class="portfolio-progress-line"></span>
-                </div>
-                <span class="portfolio-count">01 / 04</span>
-                <div class="portfolio-arrows">
-                  <button
-                    class="portfolio-arrow portfolio-arrow--previous"
-                    type="button"
-                    aria-label="Previous project"
-                    disabled
-                  >
-                    <span aria-hidden="true">←</span>
-                  </button>
-                  <button
-                    class="portfolio-arrow portfolio-arrow--next"
-                    type="button"
-                    aria-label="Next project"
-                  >
-                    <span aria-hidden="true">→</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="portfolio-viewport" tabindex="0" aria-label="Featured website projects">
-              <div class="portfolio-track"></div>
-            </div>
-          </div>
-
-          <noscript>
-            <ul class="portfolio-fallback-list">
-              <li><a href="https://doxatreasury.com">Doxa Treasury</a></li>
-              <li>
-                <a href="https://andomatthew1234.github.io/Chromecraft">
-                  Chromecraft Browser Website
-                </a>
-              </li>
-              <li><a href="https://sydneybushdances.com">Sydney Bush Dances</a></li>
-              <li><a href="https://kingroyaltyeggs.com">King Royalty Eggs</a></li>
-            </ul>
-          </noscript>
-        </section>
       </main>
     </div>
 
@@ -366,7 +305,7 @@
             <h3 id="site-footer-explore">Explore</h3>
             <ul>
               <li><a href="./">Home</a></li>
-              <li><a href="./#work">My work</a></li>
+              <li><a href="./websites/">My work</a></li>
               <li><a href="./build-your-site/">Build your site</a></li>
               <li><span class="editorial-footer__future" id="about">About <small>Coming soon</small></span></li>
             </ul>

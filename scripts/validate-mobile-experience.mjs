@@ -4,7 +4,7 @@ const roots = process.argv.slice(2).length
   ? process.argv.slice(2).map((value) => new URL(value))
   : [new URL("http://127.0.0.1:48621/"), new URL("http://127.0.0.1:48621/dist/")];
 const widths = [320, 360, 375, 390, 430, 768, 820, 1024, 1180, 1440];
-const routes = ["", "build-your-site/", "quote-viewer/", "terms/"];
+const routes = ["", "websites/", "build-your-site/", "quote-viewer/", "terms/"];
 const browser = await chromium.launch({ headless: true });
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 
@@ -73,7 +73,8 @@ async function assertHomepage(root, width) {
       cardTitles: [...section.querySelectorAll(".dream-card-copy h3")].map((node) => node.textContent.replace(/\s+/g, " ").trim()),
       cardCopy: [...section.querySelectorAll(".dream-card-copy p")].map((node) => node.textContent.replace(/\s+/g, " ").trim()),
       afterHero: section.previousElementSibling?.classList.contains("hero") === true,
-      beforePortfolio: section.nextElementSibling?.classList.contains("portfolio-section") === true,
+      isFinalHomepageSection: section.nextElementSibling === null,
+      portfolioRemoved: document.querySelector(".portfolio-section") === null,
     };
   });
   const expectedColumns = width <= 600 ? 1 : width <= 900 ? 2 : 3;
@@ -81,7 +82,7 @@ async function assertHomepage(root, width) {
   assert(dreamGrid.count === 6, `${root.pathname} ${width}: expected six dream-grid cards`);
   assert(dreamGrid.columns === expectedColumns, `${root.pathname} ${width}: dream grid has ${dreamGrid.columns} columns, expected ${expectedColumns}`);
   assert(dreamGrid.square, `${root.pathname} ${width}: dream-grid cards are not square`);
-  assert(dreamGrid.links.length === 6 && dreamGrid.links.every((href) => href === "./build-your-site/"), `${root.pathname} ${width}: one or more grid cards has the wrong link`);
+  assert(JSON.stringify(dreamGrid.links) === JSON.stringify(["./websites/", "./build-your-site/", "./build-your-site/", "./build-your-site/", "./build-your-site/", "./build-your-site/"]), `${root.pathname} ${width}: one or more grid cards has the wrong link`);
   assert(JSON.stringify(dreamGrid.cardTitles) === JSON.stringify(["Websites", "Apps", "Interfaces", "Automations", "Something entirely new", "Online stores"]), `${root.pathname} ${width}: grid card titles are incorrect`);
   assert(JSON.stringify(dreamGrid.cardCopy) === JSON.stringify([
     "Put your idea on the web with a website built from scratch for your organisation, business, or project.",
@@ -91,7 +92,7 @@ async function assertHomepage(root, width) {
     "Bring an unusual, experimental, or hard-to-categorise idea to life without squeezing it into a template.",
     "Sell products, bookings, memberships, or services through an online store built around your business.",
   ]), `${root.pathname} ${width}: grid card copy is incorrect`);
-  assert(dreamGrid.afterHero && dreamGrid.beforePortfolio, `${root.pathname} ${width}: dream grid is not between hero and portfolio`);
+  assert(dreamGrid.afterHero && dreamGrid.isFinalHomepageSection && dreamGrid.portfolioRemoved, `${root.pathname} ${width}: selected work was not cleanly moved off the homepage`);
   if (width <= 360) {
     const title = await page.locator(".title-mask:first-child .title-line").evaluate((node) => ({
       width: node.getBoundingClientRect().width,
@@ -100,19 +101,33 @@ async function assertHomepage(root, width) {
     }));
     assert(title.whiteSpace === "nowrap" && title.width <= title.parent + 1, `${root.pathname} ${width}: hero title is clipped or wraps awkwardly`);
   }
+  await context.close();
+}
+
+async function assertWebsites(root, width) {
+  const { context, page } = await open(root, "websites/", width);
+  await page.waitForSelector(".project-card");
+  const gallery = await page.evaluate(() => ({
+    title: document.querySelector("#portfolio-title")?.textContent.trim(),
+    sections: document.querySelectorAll("main > section").length,
+    projects: [...document.querySelectorAll(".project-name")].map((node) => node.textContent.trim()),
+    imagesLoaded: [...document.querySelectorAll(".project-card img")].every((image) => image.complete && image.naturalWidth > 0),
+    overflow: getComputedStyle(document.querySelector(".portfolio-viewport")).overflowX,
+    snap: getComputedStyle(document.querySelector(".portfolio-viewport")).scrollSnapType,
+    card: document.querySelector(".project-card").getBoundingClientRect().width,
+    viewport: document.querySelector(".portfolio-viewport").getBoundingClientRect().width,
+    trigger: Boolean(window.ScrollTrigger?.getById("portfolio-horizontal")),
+  }));
+  assert(gallery.title === "Don't take my word for it.", `${root.pathname} ${width}: websites title is incorrect`);
+  assert(gallery.sections === 1, `${root.pathname} ${width}: websites page contains unexpected sections`);
+  assert(JSON.stringify(gallery.projects) === JSON.stringify(["Doxa Treasury", "Chromecraft Browser Website", "Sydney Bush Dances", "King Royalty Eggs"]), `${root.pathname} ${width}: websites projects are incorrect`);
+  assert(gallery.imagesLoaded, `${root.pathname} ${width}: a websites project image failed to load`);
   if (width <= 900) {
-    const gallery = await page.locator(".portfolio-viewport").evaluate((node) => ({
-      overflow: getComputedStyle(node).overflowX,
-      snap: getComputedStyle(node).scrollSnapType,
-      card: node.querySelector(".project-card").getBoundingClientRect().width,
-      width: node.getBoundingClientRect().width,
-      trigger: Boolean(window.ScrollTrigger?.getById("portfolio-horizontal")),
-    }));
-    assert(gallery.overflow === "auto" && gallery.snap.startsWith("x") && !gallery.trigger, `${root.pathname} ${width}: gallery is not touch-native`);
-    assert(gallery.card < gallery.width * 0.92, `${root.pathname} ${width}: next project does not peek into view`);
+    assert(gallery.overflow === "auto" && gallery.snap.startsWith("x") && !gallery.trigger, `${root.pathname} ${width}: websites gallery is not touch-native`);
+    assert(gallery.card < gallery.viewport * 0.92, `${root.pathname} ${width}: next website does not peek into view`);
     await page.locator(".portfolio-arrow--next").click();
     await page.waitForTimeout(500);
-    assert((await page.locator(".portfolio-count").textContent()).trim() === "02 / 04", `${root.pathname} ${width}: gallery controls did not sync`);
+    assert((await page.locator(".portfolio-count").textContent()).trim() === "02 / 04", `${root.pathname} ${width}: websites controls did not sync`);
   }
   await context.close();
 }
@@ -181,6 +196,7 @@ try {
       for (const route of routes) await assertGeneric(root, route, width);
       await assertNavigation(root, width);
       await assertHomepage(root, width);
+      await assertWebsites(root, width);
       await assertConfigurator(root, width);
       process.stdout.write(`PASS ${root.pathname} ${width}px\n`);
     }

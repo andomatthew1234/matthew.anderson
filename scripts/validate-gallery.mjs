@@ -1,6 +1,6 @@
 import { chromium } from "file:///C:/Users/muman/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs";
 
-const baseUrl = process.argv[2] || "http://127.0.0.1:48621/";
+const baseUrl = process.argv[2] || "http://127.0.0.1:48621/websites/";
 const browser = await chromium.launch({ headless: true });
 const expectedProjects = [
   "Doxa Treasury",
@@ -55,19 +55,6 @@ async function runScenario(name, viewport, reducedMotion = "no-preference") {
   if (viewport.width >= 768 && reducedMotion === "no-preference") {
     assert(snapshot.horizontalTrigger, `${name}: desktop ScrollTrigger was not created`);
     assert(snapshot.maxScroll > snapshot.triggerEnd, `${name}: pinned gallery cannot fully release`);
-    const stalePinIsContained = await page.evaluate(() => {
-      const stage = document.querySelector(".portfolio-stage");
-      const originalStyle = stage.getAttribute("style");
-      stage.style.cssText += ";position:fixed;top:12vh;right:var(--gutter);left:var(--gutter);z-index:1";
-      const heroRect = document.querySelector(".hero-title").getBoundingClientRect();
-      const pointX = heroRect.left + Math.min(80, heroRect.width / 4);
-      const pointY = heroRect.top + Math.min(80, heroRect.height / 4);
-      const topElement = document.elementFromPoint(pointX, pointY);
-      if (originalStyle === null) stage.removeAttribute("style");
-      else stage.setAttribute("style", originalStyle);
-      return Boolean(topElement?.closest(".hero"));
-    });
-    assert(stalePinIsContained, `${name}: a stale pinned gallery can overlap the homepage hero`);
     const triggerRange = await page.evaluate(() => {
       const trigger = window.ScrollTrigger.getById("portfolio-horizontal");
       const viewport = document.querySelector(".portfolio-viewport");

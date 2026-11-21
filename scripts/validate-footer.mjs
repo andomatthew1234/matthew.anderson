@@ -109,7 +109,7 @@ async function validatePage(root, route, viewport, reducedMotion = "no-preferenc
   assert(snapshot.futureLabels.includes("Frequently asked questions Coming soon"), `${label}: FAQ is not clearly marked as future`);
   assert(snapshot.futureLabels.includes("Privacy policy Coming soon"), `${label}: Privacy policy is not clearly marked as future`);
   assert(snapshot.hrefs.Home === new URL("", root).href, `${label}: Home link is wrong (${snapshot.hrefs.Home})`);
-  assert(snapshot.hrefs["My work"] === new URL("#work", root).href, `${label}: My work link is wrong`);
+  assert(snapshot.hrefs["My work"] === new URL("websites/", root).href, `${label}: My work link is wrong`);
   assert(snapshot.hrefs["Build your site"] === new URL("build-your-site/", root).href, `${label}: Build your site link is wrong`);
   assert(snapshot.hrefs["Terms & conditions"] === new URL("terms/", root).href, `${label}: Terms link is wrong`);
   assert(snapshot.docWidth <= snapshot.clientWidth, `${label}: document has horizontal overflow (${snapshot.docWidth} > ${snapshot.clientWidth})`);
@@ -173,7 +173,7 @@ try {
   }
 
   for (const root of roots) {
-    for (const route of ["", "build-your-site/", "terms/"]) {
+    for (const route of ["", "websites/", "build-your-site/", "terms/"]) {
       const response = await fetch(new URL(route, root));
       assert(response.ok, `${new URL(route, root).href}: internal footer destination returned ${response.status}`);
     }

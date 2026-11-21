@@ -20,7 +20,7 @@ class BuiltByMatthewMobileNavigation extends HTMLElement {
         </div>
         <nav class="mobile-nav__links" aria-label="Mobile menu">
           <a href="${link()}">Home</a>
-          <a href="${link("#work")}">My work</a>
+          <a href="${link("websites/")}">My work</a>
           <a class="mobile-nav__build" href="${link("build-your-site/")}">Build your site</a>
           <a href="${link("#contact")}">Contact</a>
         </nav>

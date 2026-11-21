@@ -35,6 +35,7 @@ const entries = [
   "confirmation",
   "build-your-site",
   "quote-viewer",
+  "websites",
 ];
 
 await makeTreeWritable(outputDirectory);
