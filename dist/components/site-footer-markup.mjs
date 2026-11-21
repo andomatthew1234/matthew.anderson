@@ -31,7 +31,7 @@ export function footerMarkup({ siteRoot, year = new Date().getFullYear() }) {
             <ul>
               <li><a href="${siteHref("")}">Home</a></li>
               <li><a href="${siteHref("websites/")}">My work</a></li>
-              <li><a href="${siteHref("build-your-site/")}">Build your site</a></li>
+              <li><a href="${siteHref("start-a-project/")}">Start a project</a></li>
               <li><span class="editorial-footer__future" id="about">About <small>Coming soon</small></span></li>
             </ul>
           </section>

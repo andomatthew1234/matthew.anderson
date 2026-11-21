@@ -4,7 +4,7 @@ const roots = process.argv.slice(2).length
   ? process.argv.slice(2).map((value) => new URL(value))
   : [new URL("http://127.0.0.1:48621/"), new URL("http://127.0.0.1:48621/dist/")];
 const widths = [320, 360, 375, 390, 430, 768, 820, 1024, 1180, 1440];
-const routes = ["", "websites/", "websites/what-makes-a-good-site/", "apps/", "build-your-site/", "quote-viewer/", "terms/"];
+const routes = ["", "websites/", "websites/what-makes-a-good-site/", "apps/", "start-a-project/", "build-your-site/", "quote-viewer/", "terms/"];
 const browser = await chromium.launch({ headless: true });
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 
@@ -82,7 +82,7 @@ async function assertHomepage(root, width) {
   assert(dreamGrid.count === 6, `${root.pathname} ${width}: expected six dream-grid cards`);
   assert(dreamGrid.columns === expectedColumns, `${root.pathname} ${width}: dream grid has ${dreamGrid.columns} columns, expected ${expectedColumns}`);
   assert(dreamGrid.square, `${root.pathname} ${width}: dream-grid cards are not square`);
-  assert(JSON.stringify(dreamGrid.links) === JSON.stringify(["./websites/", "./apps/", "./build-your-site/", "./build-your-site/", "./build-your-site/", "./build-your-site/"]), `${root.pathname} ${width}: one or more grid cards has the wrong link`);
+  assert(JSON.stringify(dreamGrid.links) === JSON.stringify(["./websites/", "./apps/", "./start-a-project/", "./start-a-project/", "./start-a-project/", "./start-a-project/"]), `${root.pathname} ${width}: one or more grid cards has the wrong link`);
   assert(JSON.stringify(dreamGrid.cardTitles) === JSON.stringify(["Websites", "Apps", "Interfaces", "Automations", "Something entirely new", "Online stores"]), `${root.pathname} ${width}: grid card titles are incorrect`);
   assert(JSON.stringify(dreamGrid.cardCopy) === JSON.stringify([
     "Put your idea on the web with a website built from scratch for your organisation, business, or project.",
@@ -144,13 +144,13 @@ async function assertWebsites(root, width) {
   assert(JSON.stringify(offering.sections) === JSON.stringify(["offering-hero", "offering-why", "offering-portfolio", "offering-next"]), `${root.pathname} ${width}: websites page sections are incorrect`);
   assert(offering.pageHeadings === 1 && offering.hero === "Websites made for more than looking good.", `${root.pathname} ${width}: introduction heading is incorrect`);
   assert(offering.intro === "Your website should feel unmistakably like you. Its design, personality, and functionality shape every part of the user experience—and how people feel while using it. That is what transforms a functional website into something thoughtful, memorable, and beautifully made.", `${root.pathname} ${width}: introduction copy is incorrect`);
-  assert(JSON.stringify(offering.actions) === JSON.stringify([["Build your site", "../build-your-site/"], ["Learn more", "#why"], ["See how our websites are designed", "./what-makes-a-good-site/"]]), `${root.pathname} ${width}: introduction actions are incorrect`);
+  assert(JSON.stringify(offering.actions) === JSON.stringify([["Start a project", "../start-a-project/"], ["Learn more", "#why"], ["See how our websites are designed", "./what-makes-a-good-site/"]]), `${root.pathname} ${width}: introduction actions are incorrect`);
   assert(offering.cards.length === 4 && offering.cards.every((card) => Math.abs(card.width - card.height) <= 1 && card.scrollHeight <= card.height + 1 && card.facesFit), `${root.pathname} ${width}: why cards are not square or clip internally`);
   assert(offering.closing === "The goal is not simply to put something online. It is to create something that feels right for you—and works properly for everyone who visits it.", `${root.pathname} ${width}: why-section closing line is incorrect`);
   assert(JSON.stringify(offering.projects) === JSON.stringify(["Doxa Treasury", "Chromecraft Browser Website", "Sydney Bush Dances", "King Royalty Eggs"]), `${root.pathname} ${width}: project index order is incorrect`);
-  assert(offering.nextHeading === "Let’s make it happen." && offering.nextCopy === "Build your site and discuss the next steps with us.", `${root.pathname} ${width}: primary closing call to action is incorrect`);
+  assert(offering.nextHeading === "Let’s make it happen." && offering.nextCopy === "Start a project and discuss the next steps with us.", `${root.pathname} ${width}: primary closing call to action is incorrect`);
   assert(offering.customHeading === "Want something else?" && offering.customCopy === "Learn more about custom websites for unique ideas and enterprises.", `${root.pathname} ${width}: custom-work closing copy is incorrect`);
-  assert(JSON.stringify(offering.nextActions) === JSON.stringify([["Build your site", "../build-your-site/"], ["Email me", "mailto:matthew@andomail.com"]]), `${root.pathname} ${width}: closing actions are incorrect`);
+  assert(JSON.stringify(offering.nextActions) === JSON.stringify([["Start a project", "../start-a-project/"], ["Email me", "mailto:matthew@andomail.com"]]), `${root.pathname} ${width}: closing actions are incorrect`);
   assert(!offering.trigger, `${root.pathname} ${width}: legacy ScrollTrigger remains on project index page`);
   if (width <= 900) assert(offering.previewPosition === "relative", `${root.pathname} ${width}: mobile project preview uses the wrong flow position`);
   await page.locator(".why-card").first().click();

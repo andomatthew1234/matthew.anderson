@@ -37,6 +37,7 @@ const entries = [
   "quote-viewer",
   "websites",
   "apps",
+  "start-a-project",
 ];
 
 await makeTreeWritable(outputDirectory);
@@ -54,6 +55,7 @@ const footerPages = [
   { file: "terms/index.html", siteRoot: "../" },
   { file: "websites/index.html", siteRoot: "../" },
   { file: "apps/index.html", siteRoot: "../" },
+  { file: "start-a-project/index.html", siteRoot: "../" },
   { file: "websites/what-makes-a-good-site/index.html", siteRoot: "../../" },
 ];
 

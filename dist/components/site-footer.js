@@ -1,4 +1,4 @@
-import { footerMarkup } from "./site-footer-markup.mjs";
+import { footerMarkup } from "./site-footer-markup.mjs?v=2";
 
 const componentUrl = new URL(import.meta.url);
 const siteRoot = new URL("../", componentUrl);

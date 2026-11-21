@@ -5,7 +5,7 @@ const rootArguments = process.argv.slice(2);
 const roots = rootArguments.length
   ? rootArguments.map((argument) => new URL(argument))
   : [new URL(DEFAULT_ORIGIN), new URL("dist/", DEFAULT_ORIGIN)];
-const routes = ["", "websites/", "websites/what-makes-a-good-site/", "build-your-site/", "quote-viewer/", "terms/"];
+const routes = ["", "websites/", "websites/what-makes-a-good-site/", "start-a-project/", "build-your-site/", "quote-viewer/", "terms/"];
 const browser = await chromium.launch({ headless: true });
 const assert = (condition, message) => {
   if (!condition) throw new Error(message);
@@ -75,7 +75,7 @@ async function validatePage(root, route, viewport, reducedMotion = "no-preferenc
       aboutTargets: document.querySelectorAll("#about").length,
       socialLinks: links.filter((link) => /instagram|github/i.test(`${link.textContent} ${link.href}`)).length,
       hrefs: Object.fromEntries(
-        ["Home", "My work", "Build your site", "Terms & conditions"].map((text) => [
+        ["Home", "My work", "Start a project", "Terms & conditions"].map((text) => [
           text,
           links.find((link) => link.textContent.trim() === text)?.href,
         ]),
@@ -110,7 +110,7 @@ async function validatePage(root, route, viewport, reducedMotion = "no-preferenc
   assert(snapshot.futureLabels.includes("Privacy policy Coming soon"), `${label}: Privacy policy is not clearly marked as future`);
   assert(snapshot.hrefs.Home === new URL("", root).href, `${label}: Home link is wrong (${snapshot.hrefs.Home})`);
   assert(snapshot.hrefs["My work"] === new URL("websites/", root).href, `${label}: My work link is wrong`);
-  assert(snapshot.hrefs["Build your site"] === new URL("build-your-site/", root).href, `${label}: Build your site link is wrong`);
+  assert(snapshot.hrefs["Start a project"] === new URL("start-a-project/", root).href, `${label}: Start a project link is wrong`);
   assert(snapshot.hrefs["Terms & conditions"] === new URL("terms/", root).href, `${label}: Terms link is wrong`);
   assert(snapshot.docWidth <= snapshot.clientWidth, `${label}: document has horizontal overflow (${snapshot.docWidth} > ${snapshot.clientWidth})`);
   assert(snapshot.reveal.every(({ opacity, transform }) => opacity === "1" && transform === "none"), `${label}: footer reveal content remained hidden`);
