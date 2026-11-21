@@ -4,7 +4,7 @@ const roots = process.argv.slice(2).length
   ? process.argv.slice(2).map((value) => new URL(value))
   : [new URL("http://127.0.0.1:48621/"), new URL("http://127.0.0.1:48621/dist/")];
 const widths = [320, 360, 375, 390, 430, 768, 820, 1024, 1180, 1440];
-const routes = ["", "websites/", "websites/what-makes-a-good-site/", "build-your-site/", "quote-viewer/", "terms/"];
+const routes = ["", "websites/", "websites/what-makes-a-good-site/", "apps/", "build-your-site/", "quote-viewer/", "terms/"];
 const browser = await chromium.launch({ headless: true });
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 
@@ -82,7 +82,7 @@ async function assertHomepage(root, width) {
   assert(dreamGrid.count === 6, `${root.pathname} ${width}: expected six dream-grid cards`);
   assert(dreamGrid.columns === expectedColumns, `${root.pathname} ${width}: dream grid has ${dreamGrid.columns} columns, expected ${expectedColumns}`);
   assert(dreamGrid.square, `${root.pathname} ${width}: dream-grid cards are not square`);
-  assert(JSON.stringify(dreamGrid.links) === JSON.stringify(["./websites/", "./build-your-site/", "./build-your-site/", "./build-your-site/", "./build-your-site/", "./build-your-site/"]), `${root.pathname} ${width}: one or more grid cards has the wrong link`);
+  assert(JSON.stringify(dreamGrid.links) === JSON.stringify(["./websites/", "./apps/", "./build-your-site/", "./build-your-site/", "./build-your-site/", "./build-your-site/"]), `${root.pathname} ${width}: one or more grid cards has the wrong link`);
   assert(JSON.stringify(dreamGrid.cardTitles) === JSON.stringify(["Websites", "Apps", "Interfaces", "Automations", "Something entirely new", "Online stores"]), `${root.pathname} ${width}: grid card titles are incorrect`);
   assert(JSON.stringify(dreamGrid.cardCopy) === JSON.stringify([
     "Put your idea on the web with a website built from scratch for your organisation, business, or project.",
