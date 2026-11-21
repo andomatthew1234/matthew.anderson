@@ -5,7 +5,7 @@ const rootArguments = process.argv.slice(2);
 const roots = rootArguments.length
   ? rootArguments.map((argument) => new URL(argument))
   : [new URL(DEFAULT_ORIGIN), new URL("dist/", DEFAULT_ORIGIN)];
-const routes = ["", "websites/", "build-your-site/", "quote-viewer/", "terms/"];
+const routes = ["", "websites/", "websites/what-makes-a-good-site/", "build-your-site/", "quote-viewer/", "terms/"];
 const browser = await chromium.launch({ headless: true });
 const assert = (condition, message) => {
   if (!condition) throw new Error(message);

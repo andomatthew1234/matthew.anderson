@@ -375,6 +375,7 @@
   font: inherit;
   text-align: left;
   transition: padding 350ms var(--ease-out), color 250ms ease;
+  touch-action: manipulation;
 }
 
 .anatomy-layer-control:hover,
@@ -683,7 +684,23 @@
   .anatomy-layers, .anatomy-assembly, .anatomy-outcomes, .anatomy-cta { padding-block: 5.25rem; }
   .anatomy-layer-control { grid-template-columns: 1fr; gap: 0.85rem; }
   .anatomy-layer-control:hover, .anatomy-layer-control:focus-visible, .anatomy-layer-control.is-active { padding-left: 0.5rem; }
-  .anatomy-browser--layers { aspect-ratio: 1; }
+  .anatomy-layers__layout { gap: 1.75rem; }
+  .anatomy-layers__visual {
+    position: sticky;
+    z-index: 4;
+    top: 0.75rem;
+    padding-block: 0.25rem 0.8rem;
+    background: var(--paper);
+  }
+  .anatomy-browser--layers { height: clamp(10.5rem, 54vw, 13rem); aspect-ratio: auto; }
+  .anatomy-visual-caption { min-height: 2.8em; margin-top: 1rem; font-size: 1rem; }
+  .anatomy-layer-list { position: relative; z-index: 3; background: var(--paper); }
+  .anatomy-layer-control { min-height: 8.5rem; padding-block: 1.4rem; }
+  .anatomy-layer-control.is-active {
+    padding-inline: 0.75rem;
+    background: rgba(126, 39, 36, 0.045);
+    box-shadow: inset 3px 0 var(--anatomy-accent);
+  }
   .anatomy-assembly__browser { aspect-ratio: 0.94; }
   .anatomy-demo-nav { gap: 0.75rem; padding-inline: 4%; }
   .anatomy-demo-content { top: 26%; width: 66%; }

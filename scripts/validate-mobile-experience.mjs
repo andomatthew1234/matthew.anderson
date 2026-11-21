@@ -4,7 +4,7 @@ const roots = process.argv.slice(2).length
   ? process.argv.slice(2).map((value) => new URL(value))
   : [new URL("http://127.0.0.1:48621/"), new URL("http://127.0.0.1:48621/dist/")];
 const widths = [320, 360, 375, 390, 430, 768, 820, 1024, 1180, 1440];
-const routes = ["", "websites/", "build-your-site/", "quote-viewer/", "terms/"];
+const routes = ["", "websites/", "websites/what-makes-a-good-site/", "build-your-site/", "quote-viewer/", "terms/"];
 const browser = await chromium.launch({ headless: true });
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 
@@ -107,6 +107,13 @@ async function assertHomepage(root, width) {
 async function assertWebsites(root, width) {
   const { context, page } = await open(root, "websites/", width);
   await page.waitForSelector(".project-card");
+  if (width > 900) {
+    const heroActionsVisible = await page.locator(".offering-hero .offering-actions").evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      return rect.top >= 0 && rect.bottom <= innerHeight;
+    });
+    assert(heroActionsVisible, `${root.pathname} ${width}: offering hero actions are below the first viewport`);
+  }
   await page.locator(".portfolio-section").scrollIntoViewIfNeeded();
   await page.waitForFunction(
     () => [...document.querySelectorAll(".project-card img")].every((image) => image.complete && image.naturalWidth > 0),
@@ -117,11 +124,10 @@ async function assertWebsites(root, width) {
     title: document.querySelector("#portfolio-title")?.textContent.trim(),
     sections: [...document.querySelectorAll("main > section")].map((section) => section.className),
     pageHeadings: document.querySelectorAll("main h1").length,
-    layerControls: document.querySelectorAll(".anatomy-layer-control").length,
-    hotspots: document.querySelectorAll(".anatomy-hotspot").length,
-    outcomes: document.querySelectorAll(".anatomy-outcome").length,
-    cta: document.querySelector('.anatomy-cta a[href="../build-your-site/"]')?.textContent.trim(),
-    visualPosition: getComputedStyle(document.querySelector(".anatomy-layers__visual")).position,
+    features: document.querySelectorAll(".offering-feature").length,
+    steps: document.querySelectorAll(".offering-process__steps li").length,
+    cta: document.querySelector('.offering-cta a[href="../build-your-site/"]')?.textContent.trim(),
+    learn: document.querySelector('.offering-hero a[href="./what-makes-a-good-site/"]')?.textContent.trim(),
     projects: [...document.querySelectorAll(".project-name")].map((node) => node.textContent.trim()),
     imagesLoaded: [...document.querySelectorAll(".project-card img")].every((image) => image.complete && image.naturalWidth > 0),
     overflow: getComputedStyle(document.querySelector(".portfolio-viewport")).overflowX,
@@ -131,15 +137,10 @@ async function assertWebsites(root, width) {
     trigger: Boolean(window.ScrollTrigger?.getById("portfolio-horizontal")),
   }));
   assert(gallery.title === "Don't take my word for it.", `${root.pathname} ${width}: websites title is incorrect`);
-  assert(JSON.stringify(gallery.sections) === JSON.stringify(["anatomy-hero", "anatomy-layers", "anatomy-assembly", "portfolio-section", "anatomy-outcomes", "anatomy-cta"]), `${root.pathname} ${width}: websites page sections are incorrect`);
-  assert(gallery.pageHeadings === 1 && gallery.layerControls === 6 && gallery.hotspots === 4 && gallery.outcomes === 3 && gallery.cta === "Build your site", `${root.pathname} ${width}: websites anatomy content is incomplete`);
-  assert(gallery.visualPosition === (width <= 900 ? "relative" : "sticky"), `${root.pathname} ${width}: anatomy visual uses the wrong responsive position`);
+  assert(JSON.stringify(gallery.sections) === JSON.stringify(["offering-hero", "offering-features", "portfolio-section", "offering-process", "offering-cta"]), `${root.pathname} ${width}: websites page sections are incorrect`);
+  assert(gallery.pageHeadings === 1 && gallery.features === 6 && gallery.steps === 3 && gallery.cta === "Build your site" && gallery.learn === "Learn what makes a good site", `${root.pathname} ${width}: complete website offering is incomplete`);
   assert(JSON.stringify(gallery.projects) === JSON.stringify(["Doxa Treasury", "Chromecraft Browser Website", "Sydney Bush Dances", "King Royalty Eggs"]), `${root.pathname} ${width}: websites projects are incorrect`);
   assert(gallery.imagesLoaded, `${root.pathname} ${width}: a websites project image failed to load`);
-  await page.locator('[data-part="typography"]').click();
-  assert((await page.locator("[data-assembly-title]").textContent()).trim() === "Give the project a voice.", `${root.pathname} ${width}: assembly hotspot did not update its explanation`);
-  await page.locator('[data-layer="technology"]').click();
-  assert(await page.locator('[data-layer="technology"]').getAttribute("aria-pressed") === "true", `${root.pathname} ${width}: anatomy layer controls did not update`);
   if (width <= 900) {
     assert(gallery.overflow === "auto" && gallery.snap.startsWith("x") && !gallery.trigger, `${root.pathname} ${width}: websites gallery is not touch-native`);
     assert(gallery.card < gallery.viewport * 0.92, `${root.pathname} ${width}: next website does not peek into view`);
@@ -147,6 +148,43 @@ async function assertWebsites(root, width) {
     await page.waitForTimeout(500);
     assert((await page.locator(".portfolio-count").textContent()).trim() === "02 / 04", `${root.pathname} ${width}: websites controls did not sync`);
   }
+  await context.close();
+}
+
+async function assertAnatomy(root, width) {
+  const { context, page } = await open(root, "websites/what-makes-a-good-site/", width);
+  const snapshot = await page.evaluate(() => {
+    const visual = document.querySelector(".anatomy-layers__visual");
+    return {
+      sections: [...document.querySelectorAll("main > section")].map((section) => section.className),
+      pageHeadings: document.querySelectorAll("main h1").length,
+      portfolio: document.querySelector(".portfolio-section") !== null,
+      layerControls: document.querySelectorAll(".anatomy-layer-control").length,
+      hotspots: document.querySelectorAll(".anatomy-hotspot").length,
+      outcomes: document.querySelectorAll(".anatomy-outcome").length,
+      visualPosition: getComputedStyle(visual).position,
+      visualHeight: visual.getBoundingClientRect().height,
+      viewportHeight: innerHeight,
+    };
+  });
+  assert(JSON.stringify(snapshot.sections) === JSON.stringify(["anatomy-hero", "anatomy-layers", "anatomy-assembly", "anatomy-outcomes", "anatomy-cta"]), `${root.pathname} ${width}: anatomy page sections are incorrect`);
+  assert(snapshot.pageHeadings === 1 && !snapshot.portfolio && snapshot.layerControls === 6 && snapshot.hotspots === 4 && snapshot.outcomes === 3, `${root.pathname} ${width}: moved anatomy content is incomplete`);
+  const expectedPosition = width <= 600 || width > 900 ? "sticky" : "relative";
+  assert(snapshot.visualPosition === expectedPosition, `${root.pathname} ${width}: anatomy visual position is ${snapshot.visualPosition}, expected ${expectedPosition}`);
+  if (width <= 600) assert(snapshot.visualHeight < snapshot.viewportHeight * 0.52, `${root.pathname} ${width}: sticky anatomy visual leaves too little room for tap controls`);
+  await page.locator('[data-layer="technology"]').click();
+  assert(await page.locator('[data-layer="technology"]').getAttribute("aria-pressed") === "true", `${root.pathname} ${width}: anatomy layer control did not activate`);
+  assert((await page.locator("[data-anatomy-caption]").textContent()).trim() === "The reliable foundation underneath everything people see.", `${root.pathname} ${width}: anatomy layer feedback is not visible`);
+  if (width <= 600) {
+    const mobileFeedback = await page.evaluate(() => {
+      const visual = document.querySelector(".anatomy-layers__visual").getBoundingClientRect();
+      const activeControl = document.querySelector('.anatomy-layer-control[aria-pressed="true"]').getBoundingClientRect();
+      return visual.bottom <= activeControl.top + 1 && visual.top >= 0;
+    });
+    assert(mobileFeedback, `${root.pathname} ${width}: sticky anatomy feedback overlaps the active tap control`);
+  }
+  await page.locator('[data-part="typography"]').click();
+  assert((await page.locator("[data-assembly-title]").textContent()).trim() === "Give the project a voice.", `${root.pathname} ${width}: assembly hotspot did not update`);
   await context.close();
 }
 
@@ -215,6 +253,7 @@ try {
       await assertNavigation(root, width);
       await assertHomepage(root, width);
       await assertWebsites(root, width);
+      await assertAnatomy(root, width);
       await assertConfigurator(root, width);
       process.stdout.write(`PASS ${root.pathname} ${width}px\n`);
     }
@@ -227,6 +266,15 @@ try {
     const transition = await reduced.page.locator(".mobile-nav__panel").evaluate((node) => getComputedStyle(node).transitionDuration);
     assert(transition.split(",").every((value) => parseFloat(value) <= 0.001), `${root.pathname}: mobile menu ignores reduced motion`);
     await reduced.context.close();
+
+    for (const route of ["websites/", "websites/what-makes-a-good-site/"]) {
+      const reducedPage = await open(root, route, 390, { reducedMotion: "reduce" });
+      const revealsVisible = await reducedPage.page.locator("[data-offering-reveal], [data-anatomy-reveal]").evaluateAll((nodes) =>
+        nodes.every((node) => getComputedStyle(node).opacity === "1" && getComputedStyle(node).transform === "none"),
+      );
+      assert(revealsVisible, `${root.pathname}${route}: reduced-motion content remained hidden`);
+      await reducedPage.context.close();
+    }
     await assertMobileQuoteShare(root);
   }
   console.log("Mobile/tablet experience validation passed.");

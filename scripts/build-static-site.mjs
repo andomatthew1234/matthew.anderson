@@ -52,6 +52,7 @@ const footerPages = [
   { file: "quote-viewer/index.html", siteRoot: "../" },
   { file: "terms/index.html", siteRoot: "../" },
   { file: "websites/index.html", siteRoot: "../" },
+  { file: "websites/what-makes-a-good-site/index.html", siteRoot: "../../" },
 ];
 
 for (const { file, siteRoot } of footerPages) {
