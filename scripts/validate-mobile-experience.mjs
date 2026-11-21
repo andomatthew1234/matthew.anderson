@@ -106,7 +106,11 @@ async function assertHomepage(root, width) {
 
 async function assertWebsites(root, width) {
   const { context, page } = await open(root, "websites/", width);
-  await page.waitForSelector(".project-card");
+  await page.waitForSelector(".project-index__item");
+  await page.waitForFunction(() => {
+    const image = document.querySelector("[data-project-image]");
+    return image?.complete && image.naturalWidth > 0;
+  });
   if (width > 900) {
     const heroActionsVisible = await page.locator(".offering-hero .offering-actions").evaluate((node) => {
       const rect = node.getBoundingClientRect();
@@ -114,40 +118,38 @@ async function assertWebsites(root, width) {
     });
     assert(heroActionsVisible, `${root.pathname} ${width}: offering hero actions are below the first viewport`);
   }
-  await page.locator(".portfolio-section").scrollIntoViewIfNeeded();
-  await page.waitForFunction(
-    () => [...document.querySelectorAll(".project-card img")].every((image) => image.complete && image.naturalWidth > 0),
-    undefined,
-    { timeout: 5_000 },
-  );
-  const gallery = await page.evaluate(() => ({
+  const offering = await page.evaluate(() => ({
     title: document.querySelector("#portfolio-title")?.textContent.trim(),
     sections: [...document.querySelectorAll("main > section")].map((section) => section.className),
     pageHeadings: document.querySelectorAll("main h1").length,
-    features: document.querySelectorAll(".offering-feature").length,
-    steps: document.querySelectorAll(".offering-process__steps li").length,
-    cta: document.querySelector('.offering-cta a[href="../build-your-site/"]')?.textContent.trim(),
-    learn: document.querySelector('.offering-hero a[href="./what-makes-a-good-site/"]')?.textContent.trim(),
-    projects: [...document.querySelectorAll(".project-name")].map((node) => node.textContent.trim()),
-    imagesLoaded: [...document.querySelectorAll(".project-card img")].every((image) => image.complete && image.naturalWidth > 0),
-    overflow: getComputedStyle(document.querySelector(".portfolio-viewport")).overflowX,
-    snap: getComputedStyle(document.querySelector(".portfolio-viewport")).scrollSnapType,
-    card: document.querySelector(".project-card").getBoundingClientRect().width,
-    viewport: document.querySelector(".portfolio-viewport").getBoundingClientRect().width,
-    trigger: Boolean(window.ScrollTrigger?.getById("portfolio-horizontal")),
+    hero: document.querySelector("#offering-title")?.textContent.replace(/\s+/g, " ").trim(),
+    intro: document.querySelector(".offering-hero__intro")?.textContent.replace(/\s+/g, " ").trim(),
+    actions: [...document.querySelectorAll(".offering-hero .offering-button")].map((link) => [link.textContent.trim(), link.getAttribute("href")]),
+    cards: [...document.querySelectorAll(".why-card")].map((card) => {
+      const rect = card.getBoundingClientRect();
+      const facesFit = [...card.querySelectorAll(".why-card__face")].every((face) => face.scrollHeight <= face.clientHeight + 1);
+      return { width: rect.width, height: rect.height, scrollHeight: card.scrollHeight, facesFit };
+    }),
+    closing: document.querySelector(".offering-why__closing")?.textContent.replace(/\s+/g, " ").trim(),
+    projects: [...document.querySelectorAll(".project-index__item strong")].map((node) => node.textContent.trim()),
+    previewPosition: getComputedStyle(document.querySelector(".project-index__preview")).position,
+    trigger: Boolean(window.ScrollTrigger),
   }));
-  assert(gallery.title === "Don't take my word for it.", `${root.pathname} ${width}: websites title is incorrect`);
-  assert(JSON.stringify(gallery.sections) === JSON.stringify(["offering-hero", "offering-features", "portfolio-section", "offering-process", "offering-cta"]), `${root.pathname} ${width}: websites page sections are incorrect`);
-  assert(gallery.pageHeadings === 1 && gallery.features === 6 && gallery.steps === 3 && gallery.cta === "Build your site" && gallery.learn === "Learn what makes a good site", `${root.pathname} ${width}: complete website offering is incomplete`);
-  assert(JSON.stringify(gallery.projects) === JSON.stringify(["Doxa Treasury", "Chromecraft Browser Website", "Sydney Bush Dances", "King Royalty Eggs"]), `${root.pathname} ${width}: websites projects are incorrect`);
-  assert(gallery.imagesLoaded, `${root.pathname} ${width}: a websites project image failed to load`);
-  if (width <= 900) {
-    assert(gallery.overflow === "auto" && gallery.snap.startsWith("x") && !gallery.trigger, `${root.pathname} ${width}: websites gallery is not touch-native`);
-    assert(gallery.card < gallery.viewport * 0.92, `${root.pathname} ${width}: next website does not peek into view`);
-    await page.locator(".portfolio-arrow--next").click();
-    await page.waitForTimeout(500);
-    assert((await page.locator(".portfolio-count").textContent()).trim() === "02 / 04", `${root.pathname} ${width}: websites controls did not sync`);
-  }
+  assert(offering.title === "Websites, made properly.", `${root.pathname} ${width}: portfolio title is incorrect`);
+  assert(JSON.stringify(offering.sections) === JSON.stringify(["offering-hero", "offering-why", "offering-portfolio"]), `${root.pathname} ${width}: websites page is not limited to the three requested sections`);
+  assert(offering.pageHeadings === 1 && offering.hero === "Websites made for more than looking good.", `${root.pathname} ${width}: introduction heading is incorrect`);
+  assert(offering.intro === "Your website should feel unmistakably like you. Its design, personality, and functionality shape every part of the user experience—and how people feel while using it. That is what transforms a functional website into something thoughtful, memorable, and beautifully made.", `${root.pathname} ${width}: introduction copy is incorrect`);
+  assert(JSON.stringify(offering.actions) === JSON.stringify([["Build your site", "../build-your-site/"], ["Learn more", "#why"], ["See how our websites are designed", "./what-makes-a-good-site/"]]), `${root.pathname} ${width}: introduction actions are incorrect`);
+  assert(offering.cards.length === 4 && offering.cards.every((card) => Math.abs(card.width - card.height) <= 1 && card.scrollHeight <= card.height + 1 && card.facesFit), `${root.pathname} ${width}: why cards are not square or clip internally`);
+  assert(offering.closing === "The goal is not simply to put something online. It is to create something that feels right for you—and works properly for everyone who visits it.", `${root.pathname} ${width}: why-section closing line is incorrect`);
+  assert(JSON.stringify(offering.projects) === JSON.stringify(["Doxa Treasury", "Chromecraft Browser Website", "Sydney Bush Dances", "King Royalty Eggs"]), `${root.pathname} ${width}: project index order is incorrect`);
+  assert(!offering.trigger, `${root.pathname} ${width}: legacy ScrollTrigger remains on project index page`);
+  if (width <= 900) assert(offering.previewPosition === "relative", `${root.pathname} ${width}: mobile project preview uses the wrong flow position`);
+  await page.locator(".why-card").first().click();
+  assert(await page.locator(".why-card").first().getAttribute("aria-pressed") === "true", `${root.pathname} ${width}: flip card did not open`);
+  await page.locator(".project-index__item").last().click();
+  await page.waitForFunction(() => document.querySelector("[data-project-name]")?.textContent.trim() === "King Royalty Eggs" && document.querySelector("[data-project-image]")?.src.includes("king-royalty-eggs.jpg"));
+  assert((await page.locator("[data-project-image]").getAttribute("src")).includes("king-royalty-eggs.jpg"), `${root.pathname} ${width}: project index preview did not update`);
   await context.close();
 }
 

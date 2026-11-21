@@ -2,176 +2,102 @@ import { chromium } from "file:///C:/Users/muman/.cache/codex-runtimes/codex-pri
 
 const baseUrl = process.argv[2] || "http://127.0.0.1:48621/websites/";
 const browser = await chromium.launch({ headless: true });
-const expectedProjects = [
-  "Doxa Treasury",
-  "Chromecraft Browser Website",
-  "Sydney Bush Dances",
-  "King Royalty Eggs",
+const expected = [
+  { name: "Doxa Treasury", category: "Church history collection", url: "https://doxatreasury.com/", image: "doxa-treasury.webp" },
+  { name: "Chromecraft Browser Website", category: "Browser product website", url: "https://andomatthew1234.github.io/Chromecraft", image: "chromecraft.webp" },
+  { name: "Sydney Bush Dances", category: "Community & events", url: "https://sydneybushdances.com/", image: "sydney-bush-dances.webp" },
+  { name: "King Royalty Eggs", category: "Farm & produce", url: "https://kingroyaltyeggs.com/", image: "king-royalty-eggs.jpg" },
 ];
-
 const results = [];
+const assert = (condition, message) => { if (!condition) throw new Error(message); };
 
-const assert = (condition, message) => {
-  if (!condition) throw new Error(message);
-};
+async function waitForPreview(page, name, imageName) {
+  await page.waitForFunction(
+    ({ expectedName, expectedImage }) => {
+      const image = document.querySelector("[data-project-image]");
+      return document.querySelector("[data-project-name]")?.textContent.trim() === expectedName && image?.src.includes(expectedImage) && image.complete && image.naturalWidth > 0;
+    },
+    { expectedName: name, expectedImage: imageName },
+    { timeout: 5_000 },
+  );
+}
 
 async function runScenario(name, viewport, reducedMotion = "no-preference") {
   const context = await browser.newContext({ viewport, reducedMotion });
   const page = await context.newPage();
   const errors = [];
-  page.on("console", (message) => {
-    if (message.type() === "error") errors.push(message.text());
-  });
   page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  const response = await page.goto(baseUrl, { waitUntil: "load" });
+  assert(response?.ok(), `${name}: HTTP ${response?.status()}`);
+  await page.waitForSelector(".project-index__item");
+  await waitForPreview(page, expected[0].name, expected[0].image);
 
-  await page.goto(baseUrl, { waitUntil: "load" });
-  await page.waitForSelector(".project-card");
-  await page.locator(".portfolio-section").scrollIntoViewIfNeeded();
-  await page.waitForFunction(
-    () => [...document.querySelectorAll(".project-card img")].every((image) => image.complete && image.naturalWidth > 0),
-    undefined,
-    { timeout: 5_000 },
-  );
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(300);
-
-  const snapshot = await page.evaluate(() => ({
-    docWidth: document.documentElement.scrollWidth,
+  const initial = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
-    projects: Array.from(document.querySelectorAll(".project-name"), (node) => node.textContent.trim()),
-    imagesLoaded: Array.from(document.querySelectorAll(".project-card img"), (image) => image.complete && image.naturalWidth > 0),
-    horizontalTrigger: Boolean(window.ScrollTrigger?.getById("portfolio-horizontal")),
-    triggerEnd: window.ScrollTrigger?.getById("portfolio-horizontal")?.end ?? null,
-    maxScroll: document.documentElement.scrollHeight - innerHeight,
-    overflow: getComputedStyle(document.querySelector(".portfolio-viewport")).overflowX,
-    stageDisplay: getComputedStyle(document.querySelector(".portfolio-stage")).display,
+    items: [...document.querySelectorAll(".project-index__item strong")].map((node) => node.textContent.trim()),
+    cards: [...document.querySelectorAll(".why-card")].map((card) => {
+      const rect = card.getBoundingClientRect();
+      const facesFit = [...card.querySelectorAll(".why-card__face")].every((face) => face.scrollHeight <= face.clientHeight + 1);
+      return { width: rect.width, height: rect.height, scrollHeight: card.scrollHeight, facesFit };
+    }),
+    previewPosition: getComputedStyle(document.querySelector(".project-index__preview")).position,
+    scrollTrigger: Boolean(window.ScrollTrigger),
   }));
+  assert(initial.documentWidth === initial.clientWidth, `${name}: document has horizontal overflow`);
+  assert(JSON.stringify(initial.items) === JSON.stringify(expected.map((project) => project.name)), `${name}: project order is incorrect`);
+  assert(initial.cards.length === 4 && initial.cards.every((card) => Math.abs(card.width - card.height) <= 1 && card.scrollHeight <= card.height + 1 && card.facesFit), `${name}: a flip card is not square or clips internally`);
+  assert(!initial.scrollTrigger, `${name}: legacy ScrollTrigger loaded on project index page`);
+  if (viewport.width <= 900) assert(initial.previewPosition === "relative", `${name}: mobile project preview uses the wrong flow position`);
 
-  assert(snapshot.docWidth === snapshot.clientWidth, `${name}: document has horizontal overflow`);
-  assert(JSON.stringify(snapshot.projects) === JSON.stringify(expectedProjects), `${name}: project order changed`);
-  assert(snapshot.imagesLoaded.every(Boolean), `${name}: one or more screenshots failed to load`);
-  assert(errors.length === 0, `${name}: browser errors: ${errors.join(" | ")}`);
-
-  if (viewport.width >= 768 && reducedMotion === "no-preference") {
-    assert(snapshot.horizontalTrigger, `${name}: desktop ScrollTrigger was not created`);
-    assert(snapshot.maxScroll > snapshot.triggerEnd, `${name}: pinned gallery cannot fully release`);
-    const triggerRange = await page.evaluate(() => {
-      const trigger = window.ScrollTrigger.getById("portfolio-horizontal");
-      const viewport = document.querySelector(".portfolio-viewport");
-      const track = document.querySelector(".portfolio-track");
-      const thirdCard = document.querySelectorAll(".project-card")[2];
-      const overflow = track.scrollWidth - viewport.clientWidth;
-      const inset = Math.min(viewport.clientWidth * 0.035, 30);
-      const thirdProgress = Math.max(0, Math.min(1, (thirdCard.offsetLeft - inset) / overflow)) * 0.86;
-      return {
-        start: trigger.start,
-        end: trigger.end,
-        thirdProgress,
-        maxScroll: document.documentElement.scrollHeight - innerHeight,
-      };
-    });
-    await page.evaluate(
-      ({ start, end, thirdProgress }) =>
-        window.scrollTo({ top: start + (end - start) * thirdProgress, behavior: "instant" }),
-      triggerRange,
-    );
-    await page.waitForTimeout(1200);
-    const forwardCount = await page.locator(".portfolio-count").innerText();
-    const observed = await page.evaluate(() => {
-      const trigger = window.ScrollTrigger.getById("portfolio-horizontal");
-      return { progress: trigger.progress, start: trigger.start, end: trigger.end, scrollY: window.scrollY };
-    });
-    assert(
-      forwardCount === "03 / 04",
-      `${name}: forward scroll did not focus project 03 (got ${forwardCount}, trigger ${observed.progress.toFixed(3)}, target ${triggerRange.thirdProgress.toFixed(3)}, range ${observed.start.toFixed(0)}-${observed.end.toFixed(0)}, scroll ${observed.scrollY.toFixed(0)}, max ${triggerRange.maxScroll})`,
-    );
-
-    await page.evaluate(
-      ({ start, end }) => window.scrollTo({ top: start + (end - start) * 0.05, behavior: "instant" }),
-      triggerRange,
-    );
-    await page.waitForTimeout(900);
-    const reverseCount = await page.locator(".portfolio-count").innerText();
-    assert(reverseCount === "01 / 04", `${name}: reverse scroll did not return to project 01 (got ${reverseCount})`);
-
-    const readTrackX = () =>
-      page.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector(".portfolio-track")).transform).m41);
-    await page.evaluate(
-      ({ start, end }) => window.scrollTo({ top: start + (end - start) * 0.9, behavior: "instant" }),
-      triggerRange,
-    );
-    await page.waitForTimeout(900);
-    const holdStartX = await readTrackX();
-    const holdStartCount = await page.locator(".portfolio-count").innerText();
-
-    await page.evaluate(
-      ({ start, end }) => window.scrollTo({ top: start + (end - start) * 0.98, behavior: "instant" }),
-      triggerRange,
-    );
-    await page.waitForTimeout(900);
-    const holdEndX = await readTrackX();
-    const holdEndCount = await page.locator(".portfolio-count").innerText();
-    assert(holdStartCount === "04 / 04" && holdEndCount === "04 / 04", `${name}: final project hold is not active`);
-    assert(Math.abs(holdStartX - holdEndX) < 1, `${name}: track keeps moving during the final hold`);
-
-    await page.evaluate(({ end }) => window.scrollTo({ top: end + 10, behavior: "instant" }), triggerRange);
-    await page.waitForTimeout(300);
-    const stagePosition = await page.locator(".portfolio-stage").evaluate((element) => getComputedStyle(element).position);
-    assert(stagePosition !== "fixed", `${name}: pinned gallery did not release after its end`);
-  } else {
-    assert(!snapshot.horizontalTrigger, `${name}: pinned ScrollTrigger should be disabled`);
-    assert(snapshot.overflow === "auto", `${name}: fallback gallery must remain horizontally scrollable`);
+  for (let index = 0; index < expected.length; index += 1) {
+    await page.locator(`.project-index__item:nth-child(${index + 1})`).click();
+    await waitForPreview(page, expected[index].name, expected[index].image);
+    const state = await page.evaluate(() => ({
+      name: document.querySelector("[data-project-name]").textContent.trim(),
+      category: document.querySelector("[data-project-category]").textContent.trim(),
+      count: document.querySelector("[data-project-count]").textContent.trim(),
+      url: document.querySelector(".project-index__meta [data-project-link]").href,
+      image: document.querySelector("[data-project-image]").src,
+      alt: document.querySelector("[data-project-image]").alt,
+      selected: [...document.querySelectorAll(".project-index__item")].findIndex((item) => item.getAttribute("aria-selected") === "true"),
+    }));
+    assert(state.name === expected[index].name && state.category === expected[index].category, `${name}: project ${index + 1} metadata did not update`);
+    assert(state.count === `${String(index + 1).padStart(2, "0")} / 04`, `${name}: project ${index + 1} count is wrong`);
+    assert(state.url === expected[index].url && state.image.includes(expected[index].image) && state.alt.length > 12, `${name}: project ${index + 1} link or image is wrong`);
+    assert(state.selected === index, `${name}: project ${index + 1} selection state is wrong`);
   }
 
-  results.push({ name, ...snapshot });
-  await context.close();
-}
+  const firstTab = page.locator(".project-index__item").first();
+  await firstTab.focus();
+  await firstTab.press("ArrowDown");
+  assert(await page.locator(".project-index__item").nth(1).getAttribute("aria-selected") === "true", `${name}: keyboard project navigation failed`);
 
-async function runResizeBoundaryScenario() {
-  const context = await browser.newContext({ viewport: { width: 1600, height: 950 } });
-  const page = await context.newPage();
-  await page.goto(baseUrl, { waitUntil: "load" });
-  await page.waitForSelector(".project-card");
-  await page.waitForTimeout(300);
+  const firstCard = page.locator(".why-card").first();
+  const secondCard = page.locator(".why-card").nth(1);
+  await firstCard.click();
+  assert(await firstCard.getAttribute("aria-pressed") === "true", `${name}: first flip card did not open`);
+  assert(await firstCard.locator(".why-card__back").getAttribute("aria-hidden") === "false", `${name}: open flip card is hidden from assistive technology`);
+  await secondCard.click();
+  assert(await firstCard.getAttribute("aria-pressed") === "false" && await secondCard.getAttribute("aria-pressed") === "true", `${name}: flip cards did not synchronize`);
 
-  await page.evaluate(() => window.scrollTo({ top: 910, behavior: "instant" }));
-  await page.setViewportSize({ width: 1450, height: 850 });
-  await page.waitForTimeout(500);
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-  await page.waitForTimeout(300);
+  if (reducedMotion === "reduce") {
+    const motion = await secondCard.locator(".why-card__inner").evaluate((node) => getComputedStyle(node).transitionDuration);
+    assert(motion.split(",").every((duration) => parseFloat(duration) <= 0.001), `${name}: flip animation ignores reduced motion`);
+    assert(await page.locator("[data-offering-reveal]").evaluateAll((nodes) => nodes.every((node) => getComputedStyle(node).opacity === "1")), `${name}: reduced-motion content remains hidden`);
+  }
 
-  const snapshot = await page.evaluate(() => {
-    const section = document.querySelector(".portfolio-section");
-    const stage = document.querySelector(".portfolio-stage");
-    const trigger = window.ScrollTrigger?.getById("portfolio-horizontal");
-    const expectedStart =
-      section.offsetTop +
-      section.clientTop +
-      Number.parseFloat(getComputedStyle(section).paddingTop) -
-      innerHeight * 0.12;
-    return {
-      triggerStart: trigger?.start ?? null,
-      expectedStart,
-      stagePosition: getComputedStyle(stage).position,
-      stageTop: stage.getBoundingClientRect().top,
-    };
-  });
-
-  assert(
-    Math.abs(snapshot.triggerStart - snapshot.expectedStart) < 2,
-    `resize-boundary: trigger start was corrupted (${snapshot.triggerStart}; expected ${snapshot.expectedStart})`,
-  );
-  assert(snapshot.stagePosition !== "fixed", "resize-boundary: gallery stayed fixed over the hero after returning to top");
-  results.push({ name: "resize-boundary", ...snapshot });
+  assert(errors.length === 0, `${name}: browser errors: ${errors.join(" | ")}`);
+  results.push({ name, ...initial });
   await context.close();
 }
 
 try {
   await runScenario("desktop", { width: 1440, height: 900 });
-  await runScenario("tablet", { width: 1024, height: 768 });
+  await runScenario("tablet", { width: 820, height: 900 });
   await runScenario("mobile", { width: 390, height: 844 });
   await runScenario("reduced-motion", { width: 1440, height: 900 }, "reduce");
-  await runResizeBoundaryScenario();
   console.log(JSON.stringify({ ok: true, results }, null, 2));
 } finally {
   await browser.close();

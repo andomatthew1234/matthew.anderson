@@ -8,14 +8,11 @@
     <title>Websites — BuiltByMatthew</title>
     <link rel="icon" type="image/png" href="../favicon.png" />
     <link rel="stylesheet" href="../styles.css?v=7" />
-    <link rel="stylesheet" href="./offering.css?v=1" />
+    <link rel="stylesheet" href="./offering.css?v=2" />
     <link rel="stylesheet" href="../components/mobile-navigation.css?v=1" />
     <link rel="stylesheet" href="../components/site-footer.css?v=2" data-site-footer-styles />
-    <script src="../vendor/gsap/gsap.min.js" defer></script>
-    <script src="../vendor/gsap/ScrollTrigger.min.js" defer></script>
     <script src="../portfolio-projects.js" defer></script>
-    <script src="../portfolio-gallery.js?v=3" defer></script>
-    <script src="./offering.js?v=1" defer></script>
+    <script src="./offering.js?v=2" defer></script>
     <script type="module" src="../components/mobile-navigation.js?v=1"></script>
     <script type="module" src="../components/site-footer.js?v=1"></script>
   </head>
@@ -32,80 +29,112 @@
         <section class="offering-hero" aria-labelledby="offering-title">
           <div class="offering-hero__copy" data-offering-reveal>
             <p class="offering-kicker">Websites, built properly</p>
-            <h1 id="offering-title">Websites made for more than just <em>looking good.</em></h1>
-            <p class="offering-hero__intro">Every website is designed and built from scratch around your organisation, your audience, and what you need the site to make possible.</p>
+            <h1 id="offering-title">Websites made for more than <em>looking good.</em></h1>
+            <p class="offering-hero__intro">Your website should feel unmistakably like you. Its design, personality, and functionality shape every part of the user experience—and how people feel while using it. That is what transforms a functional website into something thoughtful, memorable, and beautifully made.</p>
             <div class="offering-actions">
               <a class="offering-button offering-button--dark" href="../build-your-site/">Build your site</a>
-              <a class="offering-button offering-button--light" href="./what-makes-a-good-site/">Learn what makes a good site</a>
+              <a class="offering-button offering-button--light" href="#why">Learn more</a>
+              <a class="offering-button offering-button--light" href="./what-makes-a-good-site/">See how our websites are designed</a>
             </div>
           </div>
           <div class="offering-hero__visual" data-offering-browser data-offering-reveal tabindex="0" role="img" aria-label="An adaptable conceptual website layout">
             <div class="offering-browser__bar" aria-hidden="true"><span></span><span></span><span></span><i></i></div>
-            <div class="offering-browser__layout" aria-hidden="true">
-              <div class="offering-browser__nav"><b>Form</b><span></span><span></span><span></span></div>
-              <div class="offering-browser__headline"><span></span><span></span></div>
-              <div class="offering-browser__copy"><span></span><span></span><span></span></div>
-              <div class="offering-browser__action"></div>
-              <div class="offering-browser__image"><i></i><i></i></div>
-              <div class="offering-browser__caption">Move your cursor</div>
-            </div>
+            <div class="offering-browser__layout" aria-hidden="true"><div class="offering-browser__nav"><b>Form</b><span></span><span></span><span></span></div><div class="offering-browser__headline"><span></span><span></span></div><div class="offering-browser__copy"><span></span><span></span><span></span></div><div class="offering-browser__action"></div><div class="offering-browser__image"><i></i><i></i></div><div class="offering-browser__caption">Move your cursor</div></div>
           </div>
         </section>
 
-        <section class="offering-features" aria-labelledby="offering-features-title">
-          <header class="offering-section-heading" data-offering-reveal><p class="offering-kicker">What every website receives</p><h2 id="offering-features-title">Built around the idea—not around a template.</h2><p>Good design is not a layer added at the end. It comes from understanding the project, making clear decisions, and giving every detail a job.</p></header>
-          <div class="offering-feature-grid">
-            <article class="offering-feature offering-feature--scratch" tabindex="0" data-offering-reveal>
-              <div class="offering-feature__demo" aria-hidden="true"><span></span><span></span><span></span><i></i></div>
-              <p class="offering-feature__label">Designed from scratch</p><h3>Made for this project.</h3><p>No pre-made theme deciding where your idea has to fit. The structure and visual language begin with what makes the project distinct.</p>
-            </article>
-            <article class="offering-feature offering-feature--responsive offering-feature--wide" tabindex="0" data-offering-reveal>
-              <div class="offering-feature__demo" aria-hidden="true"><div class="offering-responsive-screen"><span></span><span></span><span></span><i></i></div></div>
-              <p class="offering-feature__label">Responsive on every screen</p><h3>One website. Every size.</h3><p>The layout is designed to adapt deliberately—from a wide desktop to the phone already in someone’s hand.</p>
-            </article>
-            <article class="offering-feature offering-feature--navigation" tabindex="0" data-offering-reveal>
-              <div class="offering-feature__demo" aria-hidden="true"><span></span><span></span><span></span><i></i></div>
-              <p class="offering-feature__label">Easy to navigate</p><h3>Clear without feeling ordinary.</h3><p>People should always know where they are, what matters, and what they can do next.</p>
-            </article>
-            <article class="offering-feature offering-feature--interaction offering-feature--tall" tabindex="0" data-offering-reveal>
-              <div class="offering-feature__demo" aria-hidden="true"><button type="button" tabindex="-1"><span>Hover, tap, respond</span><i></i></button><b></b><b></b></div>
-              <p class="offering-feature__label">Thoughtful interactions</p><h3>Movement with a reason.</h3><p>Subtle animation and feedback can guide attention, reward curiosity, and make the experience feel alive.</p>
-            </article>
-            <article class="offering-feature offering-feature--search" tabindex="0" data-offering-reveal>
-              <div class="offering-feature__demo" aria-hidden="true"><p>builtbymatthew.xyz</p><strong>A clear website title</strong><span>A useful description written for people first—and structured so search engines can understand it.</span></div>
-              <p class="offering-feature__label">Search-ready foundations</p><h3>Ready to be understood.</h3><p>Clear structure, meaningful content, metadata, performance, and accessibility create a stronger foundation for discovery.</p>
-            </article>
-            <article class="offering-feature offering-feature--client offering-feature--wide" tabindex="0" data-offering-reveal>
-              <div class="offering-feature__demo" aria-hidden="true"><div><span>Your goals</span><i></i><i></i></div><b></b><div><span>Your audience</span><i></i><i></i></div></div>
-              <p class="offering-feature__label">Built around the client</p><h3>Your website should sound like you.</h3><p>The process is collaborative. Decisions are shaped around your goals and audience, not a generic idea of what a website should be.</p>
-            </article>
+        <section class="offering-why" id="why" aria-labelledby="why-title">
+          <header class="offering-section-heading" data-offering-reveal>
+            <p class="offering-kicker">Why work with me</p>
+            <h2 id="why-title">Made around your idea.<br /><em>Built with purpose.</em></h2>
+            <p>Select a card to see what sits behind every website.</p>
+          </header>
+
+          <div class="why-card-grid">
+            <button class="why-card" type="button" aria-pressed="false" data-flip-card data-offering-reveal>
+              <span class="why-card__inner">
+                <span class="why-card__face why-card__front">
+                  <span class="why-card__icon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="21" r="10"/><path d="M13 55C15 41 22 35 32 35C42 35 49 41 51 55"/><path d="M8 12L16 17M56 12L48 17M32 3V10"/></svg></span>
+                  <span class="why-card__title">Feels like you</span><span class="why-card__hint">Select to read</span>
+                </span>
+                <span class="why-card__face why-card__back">
+                  <span class="why-card__eyebrow">Feels like you</span>
+                  <span class="why-card__paragraph">When your website is built with us, it expresses the personality behind the project—not just an altered template with your own spin.</span>
+                  <span class="why-card__hint">Select to close</span>
+                </span>
+              </span>
+            </button>
+
+            <button class="why-card" type="button" aria-pressed="false" data-flip-card data-offering-reveal>
+              <span class="why-card__inner">
+                <span class="why-card__face why-card__front">
+                  <span class="why-card__icon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><path d="M12 19L32 8L52 19V45L32 56L12 45V19Z"/><path d="M12 19L32 31L52 19M32 31V56"/><path d="M22 14L42 26"/></svg></span>
+                  <span class="why-card__title">Built from scratch</span><span class="why-card__hint">Select to read</span>
+                </span>
+                <span class="why-card__face why-card__back">
+                  <span class="why-card__eyebrow">Built from scratch</span>
+                  <span class="why-card__paragraph">Your website is built from the ground up with open web technologies such as HTML, CSS, and JavaScript. The result is significantly faster, avoids builder fees that can cost hundreds each year, and still gives you full control through the Admin Dashboard.</span>
+                  <span class="why-card__hint">Select to close</span>
+                </span>
+              </span>
+            </button>
+
+            <button class="why-card" type="button" aria-pressed="false" data-flip-card data-offering-reveal>
+              <span class="why-card__inner">
+                <span class="why-card__face why-card__front">
+                  <span class="why-card__icon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><path d="M36 5L14 36H29L26 59L50 27H35L36 5Z"/></svg></span>
+                  <span class="why-card__title">Feels snappy.</span><span class="why-card__hint">Select to read</span>
+                </span>
+                <span class="why-card__face why-card__back">
+                  <span class="why-card__eyebrow">Feels snappy.</span>
+                  <span class="why-card__paragraph">Built from the ground up and powered by our custom ARP framework, your website is made to load incredibly quickly. Our fastest websites load in under 4ms on fast internet.</span>
+                  <span class="why-card__hint">Select to close</span>
+                </span>
+              </span>
+            </button>
+
+            <button class="why-card" type="button" aria-pressed="false" data-flip-card data-offering-reveal>
+              <span class="why-card__inner">
+                <span class="why-card__face why-card__front">
+                  <span class="why-card__icon" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="10" r="6"/><path d="M12 22H52M32 16V53M19 58L32 35L45 58M13 27L26 35M51 27L38 35"/></svg></span>
+                  <span class="why-card__title">Works for the people using it</span><span class="why-card__hint">Select to read</span>
+                </span>
+                <span class="why-card__face why-card__back">
+                  <span class="why-card__eyebrow">Works for people</span>
+                  <span class="why-card__paragraph">Every choice is considered from the visitor’s side: clear navigation, readable content, responsive layouts, keyboard access, and thoughtful interactions that help people understand where they are and what to do next.</span>
+                  <span class="why-card__hint">Select to close</span>
+                </span>
+              </span>
+            </button>
           </div>
+
+          <p class="offering-why__closing" data-offering-reveal>The goal is not simply to put something online. It is to create something that feels right for you—and works properly for everyone who visits it.</p>
         </section>
 
-        <section class="portfolio-section" id="work" aria-labelledby="portfolio-title">
-          <div class="portfolio-stage">
-            <div class="portfolio-heading-group">
-              <div><p class="portfolio-kicker">Selected work</p><h2 class="portfolio-title" id="portfolio-title">Don't take my word for it.</h2><p class="portfolio-intro">Take a look at some of the websites I built.</p></div>
-              <div class="portfolio-nav" aria-label="Portfolio gallery controls"><div class="portfolio-progress" aria-hidden="true"><span class="portfolio-progress-line is-active"></span><span class="portfolio-progress-line"></span><span class="portfolio-progress-line"></span><span class="portfolio-progress-line"></span></div><span class="portfolio-count">01 / 04</span><div class="portfolio-arrows"><button class="portfolio-arrow portfolio-arrow--previous" type="button" aria-label="Previous project" disabled><span aria-hidden="true">←</span></button><button class="portfolio-arrow portfolio-arrow--next" type="button" aria-label="Next project"><span aria-hidden="true">→</span></button></div></div>
+        <section class="offering-portfolio" id="work" aria-labelledby="portfolio-title">
+          <header class="offering-section-heading offering-section-heading--portfolio" data-offering-reveal>
+            <p class="offering-kicker">Selected work</p>
+            <h2 id="portfolio-title">Websites, made <em>properly.</em></h2>
+            <p>Choose a project to explore it.</p>
+          </header>
+
+          <div class="project-index" data-project-index>
+            <div class="project-index__list" role="tablist" aria-label="Website projects" data-offering-reveal>
+              <button class="project-index__item is-active" id="project-tab-1" type="button" role="tab" aria-selected="true" aria-controls="project-preview" data-project-index="0"><span>01</span><strong>Doxa Treasury</strong><em>Church history collection</em></button>
+              <button class="project-index__item" id="project-tab-2" type="button" role="tab" aria-selected="false" aria-controls="project-preview" data-project-index="1"><span>02</span><strong>Chromecraft Browser Website</strong><em>Browser product website</em></button>
+              <button class="project-index__item" id="project-tab-3" type="button" role="tab" aria-selected="false" aria-controls="project-preview" data-project-index="2"><span>03</span><strong>Sydney Bush Dances</strong><em>Community &amp; events</em></button>
+              <button class="project-index__item" id="project-tab-4" type="button" role="tab" aria-selected="false" aria-controls="project-preview" data-project-index="3"><span>04</span><strong>King Royalty Eggs</strong><em>Farm &amp; produce</em></button>
             </div>
-            <div class="portfolio-viewport" tabindex="0" aria-label="Featured website projects"><div class="portfolio-track"></div></div>
+
+            <div class="project-index__preview" id="project-preview" role="tabpanel" aria-labelledby="project-tab-1" aria-live="polite" data-offering-reveal>
+              <a class="project-index__image-link" href="https://doxatreasury.com" target="_blank" rel="noopener noreferrer" data-project-link>
+                <img class="project-index__preview-image" src="../assets/projects/doxa-treasury.webp" alt="Doxa Treasury website homepage showing an architectural church interior" width="1800" height="1200" data-project-image />
+              </a>
+              <div class="project-index__meta"><p><span data-project-count>01 / 04</span><span data-project-category>Church history collection</span></p><h3 data-project-name>Doxa Treasury</h3><a href="https://doxatreasury.com" target="_blank" rel="noopener noreferrer" data-project-link>Visit website</a></div>
+            </div>
           </div>
+
           <noscript><ul class="portfolio-fallback-list"><li><a href="https://doxatreasury.com">Doxa Treasury</a></li><li><a href="https://andomatthew1234.github.io/Chromecraft">Chromecraft Browser Website</a></li><li><a href="https://sydneybushdances.com">Sydney Bush Dances</a></li><li><a href="https://kingroyaltyeggs.com">King Royalty Eggs</a></li></ul></noscript>
-        </section>
-
-        <section class="offering-process" aria-labelledby="offering-process-title">
-          <header class="offering-section-heading" data-offering-reveal><p class="offering-kicker">How it works</p><h2 id="offering-process-title">From first thought to finished site.</h2><p>A clear process keeps the work focused while leaving room for the idea to become something better than either of us could have planned alone.</p></header>
-          <div class="offering-process__line" aria-hidden="true"><span data-process-line></span></div>
-          <ol class="offering-process__steps">
-            <li data-offering-reveal><p>Begin</p><h3>Tell me about the idea.</h3><span>Share what you are making, who it is for, and what you want the website to help achieve. It does not need to be fully worked out.</span></li>
-            <li data-offering-reveal><p>Shape</p><h3>Shape the website together.</h3><span>We organise the content, define the direction, and make the design decisions that give the project its own voice.</span></li>
-            <li data-offering-reveal><p>Launch</p><h3>Design, build, and launch.</h3><span>I turn the agreed direction into a responsive working website, test the details, and prepare it to go online.</span></li>
-          </ol>
-        </section>
-
-        <section class="offering-cta" aria-labelledby="offering-cta-title" data-offering-reveal>
-          <p class="offering-kicker">Start with the idea</p><h2 id="offering-cta-title">Have a website in mind?<br /><em>Let’s work out what it needs.</em></h2><p>Use the configurator to shape an initial scope and estimate, or take a closer look at what goes into a thoughtful site.</p>
-          <div class="offering-actions offering-actions--centered"><a class="offering-button offering-button--dark" href="../build-your-site/">Build your site</a><a class="offering-button offering-button--light" href="./what-makes-a-good-site/">Learn what makes a good site</a></div>
         </section>
       </main>
     </div>
