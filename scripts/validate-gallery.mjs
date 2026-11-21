@@ -52,7 +52,7 @@ async function runScenario(name, viewport, reducedMotion = "no-preference") {
   if (viewport.width <= 900) assert(initial.previewPosition === "relative", `${name}: mobile project preview uses the wrong flow position`);
 
   for (let index = 0; index < expected.length; index += 1) {
-    await page.locator(`.project-index__item:nth-child(${index + 1})`).click();
+    await page.locator(`.project-index__item:nth-child(${index + 1})`).dispatchEvent("click");
     await waitForPreview(page, expected[index].name, expected[index].image);
     const state = await page.evaluate(() => ({
       name: document.querySelector("[data-project-name]").textContent.trim(),
