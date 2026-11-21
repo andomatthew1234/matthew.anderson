@@ -12,17 +12,28 @@ try {
   await page.goto(new URL('start-a-project/', root).href);
   await page.locator('a[aria-labelledby="project-mobile-title"]').click();
   await page.locator('#builder-layout').waitFor({state:'visible'});
+  const checkImage = async (name) => {
+    await page.waitForFunction(expected => {
+      const image = document.querySelector('#section-image');
+      return image.complete && image.naturalWidth > 0 && image.currentSrc.includes(expected);
+    }, name);
+    assert.equal(await page.locator('#section-image').evaluate(image => getComputedStyle(image).objectFit), 'contain');
+  };
+  await checkImage('app-type');
   for (const width of [320,390,768,1024,1440]) {
     await page.setViewportSize({width,height:900});
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `Overflow at ${width}`);
     assert.equal(await page.locator('#continue').isVisible(), true);
   }
   await page.locator('#continue').click();
+  await checkImage('platforms');
   await page.locator('input[name=platform][value=android]').check();
   await page.locator('#continue').click();
+  await checkImage('features');
   await page.locator('input[name=accounts][value=twoFactor]').check();
   await page.locator('input[value=bookings]').check();
   assert.equal(await page.locator('#estimate-total').innerText(), '$790–$1,340');
+  assert.equal(await page.locator('#bar-app-total').innerText(), '$790–$1,340 AUD');
   await page.locator('.feature-details summary').first().click();
   await page.locator('input[value=loyalty]').check();
   assert.equal(await page.locator('#estimate-total').innerText(), '$1,040–$1,590');
@@ -49,6 +60,7 @@ try {
   await page.emulateMedia({media:'print'});
   assert.equal(await page.locator('#generated-quote').isVisible(), true);
   assert.equal(await page.locator('#app-form').isVisible(), false);
+  assert.equal(await page.locator('.app-estimate-bar').isVisible(), false);
   await page.emulateMedia({media:'screen'});
   await page.reload();
   assert.equal(await page.locator('#quote-code').inputValue(), code);

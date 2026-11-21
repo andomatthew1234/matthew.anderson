@@ -1,5 +1,6 @@
 import { MODES, FEATURES, createInitialState, normaliseState, calculateEstimate, formatMoneyRange, formatAmount } from './app-data.mjs';
 import { createAppQuoteSnapshot, encodeAppQuote, decodeAppQuote } from './app-code.mjs';
+import { APP_VISUALS } from './app-visuals.mjs';
 
 const $ = (selector) => document.querySelector(selector);
 const escape = (value) => String(value).replace(/[&<>"']/g, (character) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
@@ -9,6 +10,7 @@ let state = createInitialState();
 let snapshot = null;
 let code = '';
 let step = 0;
+let visualStep = -1;
 try {
   const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
   if (saved) {
@@ -59,6 +61,16 @@ function linesMarkup(quote) {
 function update() {
   const isNew = state.mode === 'new';
   if (!isNew && step > 1) step = 1;
+  if (visualStep !== step) {
+    visualStep = step;
+    const visual = APP_VISUALS[step];
+    const image = $('#section-image');
+    image.srcset = `../assets/app-configurator/${visual.image}-mobile.webp 768w, ../assets/app-configurator/${visual.image}.webp 1536w`;
+    image.src = `../assets/app-configurator/${visual.image}.webp`;
+    image.alt = visual.alt;
+    $('#visual-title').textContent = visual.title;
+    $('#visual-description').textContent = visual.description;
+  }
   $('[data-step="2"]').hidden = !isNew;
   for (const panel of document.querySelectorAll('[data-panel]')) panel.hidden = Number(panel.dataset.panel) !== step;
   for (const button of document.querySelectorAll('[data-step]')) {
@@ -70,6 +82,7 @@ function update() {
   $('#continue').textContent = step === (isNew ? 2 : 1) ? 'Generate quote →' : 'Continue →';
   const estimate = calculateEstimate(state);
   $('#estimate-total').textContent = money(estimate.totalCents);
+  $('#bar-app-total').textContent = formatMoneyRange(estimate.totalCents);
   $('#estimate-lines').innerHTML = linesMarkup(estimate);
   $('#dependency-notes').innerHTML = estimate.dependencies.map(({reason}) => `<p class="dependency-note">${escape(reason)}</p>`).join('');
   $('#unpriced-notes').innerHTML = estimate.unpriced.map((note) => `<p class="unpriced-note">${escape(note)} Not included in the total.</p>`).join('');
@@ -98,7 +111,9 @@ function goToStep(next) {
   step = next;
   $('#form-error').textContent = '';
   update();
-  $(`[data-panel="${step}"] h2`).focus();
+  $(`[data-panel="${step}"] h2`).focus({ preventScroll: true });
+  const destination = matchMedia('(max-width: 800px)').matches ? $('.app-visual') : $('.step-nav');
+  destination.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
 }
 $('#app-form').addEventListener('change', (event) => {
   const input = event.target;
@@ -193,3 +208,4 @@ syncInputs();
 update();
 renderQuote();
 $('#builder-layout').hidden = false;
+$('.app-estimate-bar').hidden = false;
