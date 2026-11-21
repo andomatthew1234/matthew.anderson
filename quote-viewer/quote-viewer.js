@@ -1,7 +1,7 @@
 import { decodeConfiguration } from "../build-your-site/configuration-code.mjs?v=7";
 import { formatDiscountRuleLabel, formatMoneyRangeCents, formatPrice, getQuoteMoney } from "../build-your-site/configurator-data.mjs?v=7";
-import { decodeAppQuote } from "../build-your-app/app-code.mjs?v=1";
-import { formatMoneyRange } from "../build-your-app/app-data.mjs?v=1";
+import { decodeAppQuote } from "../build-your-app/app-code.mjs?v=2";
+import { formatMoneyRange } from "../build-your-app/app-data.mjs?v=2";
 
 const input = document.querySelector("[data-viewer-code]");
 const status = document.querySelector("[data-viewer-status]");
@@ -16,7 +16,7 @@ const appPlatformLabels = { both: "iOS + Android", ios: "iOS only", android: "An
 
 function renderApp(snapshot) {
   const { quote, configuration } = snapshot;
-  const lines = quote.lines.map((line) => `<div class="quote-line"><span>${escapeHtml(line.label)}${line.automatic ? " (required)" : ""}</span><span>${escapeHtml(formatMoneyRange(line.amountCents))}</span></div>`).join("");
+  const lines = quote.lines.map((line) => `<div class="quote-line"><span>${escapeHtml(line.label)}${line.automatic ? " (required)" : ""}${line.note ? `<small class="app-line-note">${escapeHtml(line.note)}</small>` : ""}</span><span>${escapeHtml(formatMoneyRange(line.amountCents))}</span></div>`).join("");
   const custom = quote.unpriced.length ? `<section class="quote-group"><p class="quote-group-title">Requires confirmation</p>${quote.unpriced.map((item) => `<div class="quote-line"><span>${escapeHtml(item)}</span><span>To be confirmed</span></div>`).join("")}</section>` : "";
   const dependencies = quote.dependencies.length ? `<section class="quote-group"><p class="quote-group-title">Included requirements</p>${quote.dependencies.map((item) => `<p>${escapeHtml(item.reason)}</p>`).join("")}</section>` : "";
   const details = configuration.website || configuration.notes ? `<section class="quote-group"><p class="quote-group-title">Project details</p>${configuration.website ? `<p>Existing website: ${escapeHtml(configuration.website)}</p>` : ""}${configuration.notes ? `<p>${escapeHtml(configuration.notes)}</p>` : ""}</section>` : "";
@@ -58,7 +58,7 @@ function textBreakdown() {
       `App type: ${appModeLabels[configuration.mode] || configuration.mode}`,
       `Platforms: ${appPlatformLabels[configuration.platform] || configuration.platform}`,
       ...(configuration.website ? [`Existing website: ${configuration.website}`] : []),
-      "", ...quote.lines.map((line) => `${line.label}${line.automatic ? " (required)" : ""}: ${formatMoneyRange(line.amountCents)}`),
+      "", ...quote.lines.map((line) => `${line.label}${line.automatic ? " (required)" : ""}: ${formatMoneyRange(line.amountCents)}${line.note ? ` — ${line.note}` : ""}`),
       ...quote.dependencies.map((item) => item.reason),
       ...quote.unpriced.map((item) => `${item}: To be confirmed`),
       ...(configuration.notes ? ["", `Project notes: ${configuration.notes}`] : []),

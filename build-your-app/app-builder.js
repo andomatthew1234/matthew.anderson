@@ -1,5 +1,5 @@
-import { MODES, FEATURES, createInitialState, normaliseState, calculateEstimate, formatMoneyRange, formatAmount } from './app-data.mjs';
-import { createAppQuoteSnapshot, encodeAppQuote, decodeAppQuote } from './app-code.mjs';
+import { MODES, FEATURES, CUSTOM_FEATURE_LIMIT, CUSTOM_FEATURE_NAME_LIMIT, CUSTOM_FEATURE_PRICE_CENTS, normaliseCustomFeatureName, createInitialState, normaliseState, calculateEstimate, formatMoneyRange, formatAmount } from './app-data.mjs?v=2';
+import { createAppQuoteSnapshot, encodeAppQuote, decodeAppQuote } from './app-code.mjs?v=2';
 import { APP_VISUALS } from './app-visuals.mjs';
 
 const $ = (selector) => document.querySelector(selector);
@@ -20,7 +20,7 @@ try {
 } catch { /* A missing or damaged local draft must never prevent a new quote. */ }
 
 const money = (range) => formatMoneyRange(range).replace(/ AUD$/, '');
-const stale = () => snapshot && JSON.stringify(normaliseState(state)) !== JSON.stringify(snapshot.configuration);
+const stale = () => snapshot && JSON.stringify(normaliseState(state)) !== JSON.stringify(normaliseState(snapshot.configuration));
 function persist() {
   try { localStorage.setItem(storageKey, JSON.stringify({ state, code })); } catch { /* Quoting also works without browser storage. */ }
 }
@@ -56,8 +56,45 @@ function syncInputs() {
   $('#notes').value = state.notes;
 }
 function linesMarkup(quote) {
-  return quote.lines.map((line) => `<div class="estimate-line"><span>${escape(line.label)}${line.automatic ? '<small>Required · included in total</small>' : ''}</span><span>${escape(money(line.amountCents))}</span></div>`).join('');
+  return quote.lines.map((line) => `<div class="estimate-line"><span>${escape(line.label)}${line.automatic ? '<small>Required · included in total</small>' : ''}${line.note ? `<small>${escape(line.note)}</small>` : ''}</span><span>${escape(money(line.amountCents))}</span></div>`).join('');
 }
+function renderCustomFeatures() {
+  const names = state.customFeatures;
+  $('#custom-feature-list').innerHTML = names.map((name, index) => `<li><span class="custom-feature-label">${escape(name)}<small>${formatAmount(CUSTOM_FEATURE_PRICE_CENTS)} estimate</small></span><button class="button button--quiet" type="button" data-remove-custom="${index}" aria-label="Remove ${escape(name)}">Remove</button></li>`).join('');
+  const full = names.length >= CUSTOM_FEATURE_LIMIT;
+  $('#add-custom-feature').disabled = full;
+  $('#custom-feature-name').disabled = full;
+  $('#custom-feature-status').textContent = `${names.length} of ${CUSTOM_FEATURE_LIMIT} added.${full ? ' Limit reached. Remove a feature to add another.' : ''}`;
+}
+function addCustomFeature() {
+  if (state.mode !== 'new' || state.customFeatures.length >= CUSTOM_FEATURE_LIMIT) return;
+  const input = $('#custom-feature-name');
+  const name = normaliseCustomFeatureName(input.value);
+  if (!name) {
+    $('#custom-feature-status').textContent = 'Enter a feature name first.';
+    input.setAttribute('aria-invalid', 'true');
+    input.focus();
+    return;
+  }
+  input.removeAttribute('aria-invalid');
+  state.customFeatures.push(name);
+  input.value = '';
+  update();
+  if (!input.disabled) input.focus(); else $('#custom-feature-list button:last-child').focus();
+}
+$('#custom-feature-name').maxLength = CUSTOM_FEATURE_NAME_LIMIT;
+$('#add-custom-feature').addEventListener('click', addCustomFeature);
+$('#custom-feature-name').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') { event.preventDefault(); if (!event.isComposing) addCustomFeature(); }
+});
+$('#custom-feature-name').addEventListener('input', () => $('#custom-feature-name').removeAttribute('aria-invalid'));
+$('#custom-feature-list').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-remove-custom]');
+  if (!button) return;
+  state.customFeatures.splice(Number(button.dataset.removeCustom), 1);
+  update();
+  $('#custom-feature-name').focus();
+});
 function update() {
   const isNew = state.mode === 'new';
   if (!isNew && step > 1) step = 1;
@@ -86,6 +123,7 @@ function update() {
   $('#estimate-lines').innerHTML = linesMarkup(estimate);
   $('#dependency-notes').innerHTML = estimate.dependencies.map(({reason}) => `<p class="dependency-note">${escape(reason)}</p>`).join('');
   $('#unpriced-notes').innerHTML = estimate.unpriced.map((note) => `<p class="unpriced-note">${escape(note)} Not included in the total.</p>`).join('');
+  renderCustomFeatures();
   updateQuoteValidity();
   persist();
 }
@@ -158,7 +196,7 @@ function breakdown() {
     'BuiltByMatthew — Mobile app estimate',
     `App: ${MODES[configuration.mode].label}`, `Platform: ${platforms[configuration.platform]}`,
     configuration.website ? `Website: ${configuration.website}` : '', '',
-    ...quote.lines.map((line) => `${line.label}${line.automatic ? ' (required)' : ''}: ${formatMoneyRange(line.amountCents)}`),
+    ...quote.lines.map((line) => `${line.label}${line.automatic ? ' (required)' : ''}: ${formatMoneyRange(line.amountCents)}${line.note ? ` — ${line.note}` : ''}`),
     `Estimated development total: ${formatMoneyRange(quote.totalCents)}`,
     ...quote.dependencies.map(({reason}) => reason), ...quote.unpriced,
     configuration.notes ? `Custom request: ${configuration.notes}` : '',

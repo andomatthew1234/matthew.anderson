@@ -1,9 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { FEATURES, MODES, createInitialState, normaliseState, calculateEstimate, formatMoneyRange } from "../build-your-app/app-data.mjs";
+import { FEATURES, MODES, CUSTOM_FEATURE_NOTE, CUSTOM_FEATURE_LIMIT, CUSTOM_FEATURE_PRICE_CENTS, normaliseCustomFeatureName, createInitialState, normaliseState, calculateEstimate, formatMoneyRange } from "../build-your-app/app-data.mjs";
 import { createAppQuoteSnapshot, encodeAppQuote, decodeAppQuote } from "../build-your-app/app-code.mjs";
 
 const state = (overrides = {}) => ({ ...createInitialState(), ...overrides });
+
+// Reproduce an already-issued schema-1 code without passing it through today's
+// encoder, which adds optional fields while validating the snapshot.
+function legacyWireCode(snapshot) {
+  const bytes = Buffer.from(JSON.stringify(snapshot), "utf8");
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+  }
+  return `MA1-${bytes.toString("base64url")}.${((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, "0")}`;
+}
 
 test("each platform is included at every base price", () => {
   for (const [mode, min, max] of [["nativeMirror", 45000, 90000], ["connectedMirror", 25000, 50000], ["new", 35000, 90000]]) {
@@ -55,7 +67,7 @@ test("all features retain fixed item prices", () => {
 
 test("mirror branch drops stale new-app options including custom notes", () => {
   for (const mode of ["nativeMirror", "connectedMirror"]) {
-    const input = state({ mode, accounts: "twoFactor", features: FEATURES.map(({ id }) => id), sync: "connect", notes: "Custom requests", website: "https://example.com" });
+    const input = state({ mode, accounts: "twoFactor", features: FEATURES.map(({ id }) => id), sync: "connect", notes: "Custom requests", customFeatures: ["Private messages"], website: "https://example.com" });
     const result = calculateEstimate(input);
     assert.equal(result.lines.length, 1);
     assert.deepEqual(result.unpriced, []);
@@ -63,6 +75,7 @@ test("mirror branch drops stale new-app options including custom notes", () => {
     assert.equal(result.effectiveState.accounts, "none");
     assert.equal(result.effectiveState.sync, "none");
     assert.equal(result.effectiveState.notes, "");
+    assert.deepEqual(result.effectiveState.customFeatures, []);
     assert.equal(input.accounts, "twoFactor", "caller state stays unchanged");
   }
 });
@@ -168,6 +181,78 @@ test("snapshot validation rejects corrupt arithmetic and structure", () => {
     (s) => { s.quote.lines[0].label = "x".repeat(181); },
   ]) {
     const snapshot = createAppQuoteSnapshot(state());
+    mutate(snapshot);
+    assert.throws(() => encodeAppQuote(snapshot));
+  }
+});
+
+test("custom features add $100 per named item without automatic dependencies", () => {
+  const result = calculateEstimate(state({ customFeatures: ["Private messages", "Invoice export"] }));
+  assert.deepEqual(result.totalCents, { min: 55000, max: 110000 });
+  assert.deepEqual(result.dependencies, []);
+  assert.deepEqual(result.unpriced, []);
+  assert.deepEqual(result.lines.slice(1).map(({ id, label, amountCents, note }) => ({ id, label, amountCents, note })), [
+    { id: "custom-1", label: "Custom feature: Private messages", amountCents: { min: 10000, max: 10000 }, note: CUSTOM_FEATURE_NOTE },
+    { id: "custom-2", label: "Custom feature: Invoice export", amountCents: { min: 10000, max: 10000 }, note: CUSTOM_FEATURE_NOTE },
+  ]);
+  assert.equal(CUSTOM_FEATURE_PRICE_CENTS, 10000);
+});
+
+test("custom feature normalisation removes blanks and controls, caps names and count", () => {
+  assert.equal(normaliseCustomFeatureName("  File\n\t export\u0000 tool  "), "File export tool");
+  assert.equal(normaliseCustomFeatureName(null), "");
+  assert.equal(normaliseCustomFeatureName("x".repeat(81)).length, 80);
+  assert.deepEqual(normaliseState(state({ customFeatures: [null, "", "   ", {}, "  Valid name  "] })).customFeatures, ["Valid name"]);
+  const names = Array.from({length: 21}, (_, i) => `Feature ${i + 1}`);
+  const result = calculateEstimate(state({ customFeatures: names }));
+  assert.equal(result.effectiveState.customFeatures.length, CUSTOM_FEATURE_LIMIT);
+  assert.deepEqual(result.totalCents, { min: 235000, max: 290000 });
+  assert.equal(result.lines.length, 21);
+});
+
+test("custom names, estimate notes and saved historical prices survive quote recovery", () => {
+  const snapshot = createAppQuoteSnapshot(state({ customFeatures: ["Café 日本語 🌻", '<img src=x onerror="alert(1)">'] }));
+  snapshot.quote.lines[1].amountCents = { min: 7500, max: 12500 };
+  snapshot.quote.totalCents = { min: 52500, max: 112500 };
+  snapshot.pricingVersion = "custom-allowances-historical";
+  const recovered = decodeAppQuote(encodeAppQuote(snapshot));
+  assert.deepEqual(recovered, snapshot);
+  assert.equal(recovered.quote.lines[1].note, CUSTOM_FEATURE_NOTE);
+  assert.notDeepEqual(recovered.quote.totalCents, calculateEstimate(recovered.configuration).totalCents);
+});
+
+test("old codes without customFeatures retain their original saved totals", () => {
+  const legacy = createAppQuoteSnapshot(state({features:["bookings"]}));
+  delete legacy.configuration.customFeatures;
+  legacy.pricingVersion = "mobile-app-2026-11-21-v1";
+  const recovered = decodeAppQuote(legacyWireCode(legacy));
+  assert.deepEqual(recovered.configuration.customFeatures, []);
+  assert.deepEqual(recovered.quote, legacy.quote);
+  assert.equal(recovered.pricingVersion, legacy.pricingVersion);
+});
+
+test("largest supported quote with twenty Unicode names and all features roundtrips", () => {
+  const input = state({ customFeatures: Array.from({length:20}, () => "語".repeat(80)), features: FEATURES.map(({id}) => id), accounts: "twoFactor", notes: "語".repeat(1000), website: "x".repeat(250), sync:"connect" });
+  const snapshot = createAppQuoteSnapshot(input);
+  const code = encodeAppQuote(snapshot);
+  assert.ok(code.length < 45000);
+  assert.deepEqual(decodeAppQuote(code), snapshot);
+});
+
+test("custom feature snapshot validation rejects excessive, malformed and mismatched values", () => {
+  for (const mutate of [
+    (s) => { s.configuration.customFeatures = Array(21).fill("Feature"); },
+    (s) => { s.configuration.customFeatures = "Not an array"; },
+    (s) => { s.configuration.customFeatures = [""]; },
+    (s) => { s.configuration.customFeatures = ["x".repeat(81)]; },
+    (s) => { s.configuration.customFeatures = ["Two  spaces"]; },
+    (s) => { s.configuration.customFeatures = ["Control\u007fcharacter"]; },
+    (s) => { s.configuration.mode = "nativeMirror"; },
+    (s) => { s.quote.lines[1].label = "Different feature"; },
+    (s) => { s.quote.lines[1].automatic = true; },
+    (s) => { s.quote.lines[1].note = "x".repeat(301); },
+  ]) {
+    const snapshot = createAppQuoteSnapshot(state({ customFeatures: ["A feature"] }));
     mutate(snapshot);
     assert.throws(() => encodeAppQuote(snapshot));
   }

@@ -1,7 +1,7 @@
-import { PRICING_VERSION, calculateEstimate, normaliseState } from "./app-data.mjs";
+import { PRICING_VERSION, calculateEstimate, normaliseState } from "./app-data.mjs?v=2";
 
-const MAX_CODE_LENGTH = 30000;
-const MAX_PAYLOAD_BYTES = 20000;
+const MAX_CODE_LENGTH = 45000;
+const MAX_PAYLOAD_BYTES = 32768;
 const MAX_CENTS = 100000000;
 const invalid = () => { throw new Error("This app quote code is invalid or damaged. Please check the full code."); };
 const object = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -37,9 +37,15 @@ function configuration(value) {
   if (new Set(features).size !== features.length) invalid();
   const website = text(value.website, 250, true);
   const notes = text(value.notes, 1000, true);
+  // Optional extension: pre-custom-feature schema-1 codes omit this field.
+  const customFeatures = value.customFeatures === undefined ? [] : list(value.customFeatures, 20).map((name) => {
+    const clean = text(name, 80);
+    if (clean !== clean.trim() || /[\u0000-\u001f\u007f-\u009f]/u.test(clean) || /\s{2,}/u.test(clean)) invalid();
+    return clean;
+  });
   if (website !== website.trim() || notes !== notes.trim()) invalid();
-  if (mode !== "new" && (accounts !== "none" || features.length || sync !== "none" || notes)) invalid();
-  return { mode, platform, accounts, features, website, sync, notes };
+  if (mode !== "new" && (accounts !== "none" || features.length || sync !== "none" || notes || customFeatures.length)) invalid();
+  return { mode, platform, accounts, features, website, sync, notes, customFeatures };
 }
 
 // Decode checks the stored arithmetic, never the current price catalogue. Quote
@@ -49,7 +55,7 @@ function validateSnapshot(value) {
   const quote = value.quote;
   const lines = list(quote.lines, 50).map((line) => {
     if (!object(line) || typeof line.automatic !== "boolean") invalid();
-    return { id: text(line.id, 80), label: text(line.label, 180), amountCents: range(line.amountCents), automatic: line.automatic };
+    return { id: text(line.id, 80), label: text(line.label, 180), amountCents: range(line.amountCents), automatic: line.automatic, ...(line.note === undefined ? {} : { note: text(line.note, 300) }) };
   });
   if (!lines.length || new Set(lines.map(({ id }) => id)).size !== lines.length) invalid();
   const totalCents = range(quote.totalCents);
@@ -66,7 +72,14 @@ function validateSnapshot(value) {
   const unpriced = list(quote.unpriced, 30).map((entry) => text(entry, 500));
   const generatedAt = text(value.generatedAt, 30);
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(generatedAt) || !Number.isFinite(Date.parse(generatedAt)) || new Date(generatedAt).toISOString() !== generatedAt) invalid();
-  return { schemaVersion: 1, projectType: "mobile-app", pricingVersion: text(value.pricingVersion, 100), configuration: configuration(value.configuration), quote: { lines, totalCents, dependencies, unpriced, discountCents }, generatedAt };
+  const savedConfiguration = configuration(value.configuration);
+  const customLines = lines.filter((line) => /^custom-/u.test(line.id));
+  if (customLines.length !== savedConfiguration.customFeatures.length) invalid();
+  savedConfiguration.customFeatures.forEach((name, index) => {
+    const line = customLines.find((entry) => entry.id === `custom-${index + 1}`);
+    if (!line || line.label !== `Custom feature: ${name}` || line.automatic) invalid();
+  });
+  return { schemaVersion: 1, projectType: "mobile-app", pricingVersion: text(value.pricingVersion, 100), configuration: savedConfiguration, quote: { lines, totalCents, dependencies, unpriced, discountCents }, generatedAt };
 }
 
 export function createAppQuoteSnapshot(state) {

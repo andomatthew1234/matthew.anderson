@@ -1,5 +1,15 @@
 // All development prices are integer AUD cents. App quotes do not use website discounts.
-export const PRICING_VERSION = "mobile-app-2026-11-21-v1";
+export const PRICING_VERSION = "mobile-app-2026-11-21-v2";
+export const CUSTOM_FEATURE_LIMIT = 20;
+export const CUSTOM_FEATURE_NAME_LIMIT = 80;
+export const CUSTOM_FEATURE_PRICE_CENTS = 10000;
+export const CUSTOM_FEATURE_NOTE = "Estimated allowance; the final price may be higher or lower.";
+
+export function normaliseCustomFeatureName(value) {
+  return typeof value === "string"
+    ? value.replace(/[\u0000-\u001f\u007f-\u009f]/gu, " ").replace(/\s+/gu, " ").trim().slice(0, CUSTOM_FEATURE_NAME_LIMIT).trim()
+    : "";
+}
 
 export const MODES = {
   nativeMirror: { id: "nativeMirror", label: "Native design", description: "Rebuild your existing site as an app with a native design.", baseCents: [45000, 90000] },
@@ -28,7 +38,7 @@ const choose = (value, allowed, fallback) => allowed.includes(value) ? value : f
 const boundedText = (value, max) => typeof value === "string" ? value.trim().slice(0, max) : "";
 
 export function createInitialState() {
-  return { mode: "new", platform: "both", accounts: "none", features: [], website: "", sync: "none", notes: "" };
+  return { mode: "new", platform: "both", accounts: "none", features: [], website: "", sync: "none", notes: "", customFeatures: [] };
 }
 
 export function normaliseState(input = {}) {
@@ -43,6 +53,9 @@ export function normaliseState(input = {}) {
     website: boundedText(value.website, 250),
     sync: isNew ? choose(value.sync, ["none", "connect", "unsure"], "none") : "none",
     notes: isNew ? boundedText(value.notes, 1000) : "",
+    customFeatures: isNew && Array.isArray(value.customFeatures)
+      ? value.customFeatures.map(normaliseCustomFeatureName).filter(Boolean).slice(0, CUSTOM_FEATURE_LIMIT)
+      : [],
   };
 }
 
@@ -79,6 +92,9 @@ export function calculateEstimate(input) {
       if (!selected.has(feature.id)) continue;
       lines.push({ id: feature.id, label: feature.label, amountCents: { min: feature.priceCents, max: feature.priceCents }, automatic: automatic.has(feature.id) });
     }
+    effectiveState.customFeatures.forEach((name, index) => {
+      lines.push({ id: `custom-${index + 1}`, label: `Custom feature: ${name}`, amountCents: { min: CUSTOM_FEATURE_PRICE_CENTS, max: CUSTOM_FEATURE_PRICE_CENTS }, automatic: false, note: CUSTOM_FEATURE_NOTE });
+    });
     effectiveState.features = FEATURES.filter(({ id }) => selected.has(id)).map(({ id }) => id);
     if (effectiveState.sync !== "none") unpriced.push("Website syncing: scope and any additional cost need confirmation.");
     if (effectiveState.notes) unpriced.push("Custom requirements: scope and any additional cost need confirmation.");

@@ -9,12 +9,12 @@
   <link rel="canonical" href="https://builtbymatthew.xyz/build-your-app/" />
   <link rel="icon" href="../favicon.png" />
   <link rel="stylesheet" href="../styles.css?v=7" />
-  <link rel="stylesheet" href="./app-builder.css?v=2" />
+  <link rel="stylesheet" href="./app-builder.css?v=3" />
   <link rel="stylesheet" href="../components/mobile-navigation.css?v=1" />
   <link rel="stylesheet" href="../components/site-footer.css?v=2" data-site-footer-styles />
   <script type="module" src="../components/mobile-navigation.js?v=2"></script>
   <script type="module" src="../components/site-footer.js?v=2"></script>
-  <script type="module" src="./app-builder.js?v=2"></script>
+  <script type="module" src="./app-builder.js?v=3"></script>
 </head>
 <body class="app-builder-page">
   <a class="skip-link" href="#main-content">Skip to app configuration</a>
@@ -50,11 +50,19 @@
             <fieldset><legend>Accounts &amp; profiles</legend><div class="option-list" id="account-options"></div></fieldset>
             <fieldset><legend>Popular features</legend><div class="option-list" id="popular-features"></div></fieldset>
             <details class="feature-details"><summary>More features</summary><div class="option-list" id="more-features"></div></details>
-            <details class="feature-details"><summary>Connect a website or add something custom</summary>
+            <section class="custom-features" aria-labelledby="custom-features-heading">
+              <h3 id="custom-features-heading">Custom features</h3>
+              <p class="field-help" id="custom-features-help">Something else in mind? Add up to 20 named features. Each adds a <strong>$100 AUD estimate</strong> to your quote. The final price may be higher or lower once we discuss the details.</p>
+              <label class="input-label" for="custom-feature-name">Feature name</label>
+              <div class="custom-feature-entry"><input id="custom-feature-name" type="text" maxlength="80" placeholder="e.g. Delivery tracking" aria-describedby="custom-features-help custom-feature-status" /><button type="button" class="button" id="add-custom-feature">Add <span aria-hidden="true">+</span></button></div>
+              <p id="custom-feature-status" class="field-help" role="status" aria-live="polite"></p>
+              <ul id="custom-feature-list" class="custom-feature-list" aria-label="Your custom features"></ul>
+            </section>
+            <details class="feature-details"><summary>Website connections &amp; other details</summary>
               <label class="input-label" for="sync">Connect to an existing website?</label><select id="sync"><option value="none">No connection needed</option><option value="connect">Yes — connect selected features</option><option value="unsure">I’m not sure yet</option></select>
               <div id="sync-address" hidden><label class="input-label" for="sync-website">Website address</label><input id="sync-website" type="url" maxlength="250" placeholder="https://yourwebsite.com" autocomplete="url" /></div>
               <p class="field-help">Website connections are scoped separately. This is still a new app, designed from scratch.</p>
-              <label class="input-label" for="notes">Anything else? <span>(optional)</span></label><textarea id="notes" rows="4" maxlength="1000" placeholder="For example: messaging, AI, or a specialised workflow."></textarea><p class="field-help">Custom requests need confirmation and aren’t included in the priced total.</p>
+              <label class="input-label" for="notes">Additional details <span>(optional)</span></label><textarea id="notes" rows="4" maxlength="1000" placeholder="Anything else we should know about your project."></textarea><p class="field-help">Additional requests here need confirmation and aren’t priced. To include a named feature at a $100 estimate, use Custom features above.</p>
             </details>
           </section>
           <p id="form-error" class="form-error" role="alert"></p>

@@ -19,4 +19,6 @@
   .quote-line { display: grid; gap: 0.25rem; }
   .quote-line span:last-child { white-space: normal; color: var(--muted); }
 }
+.app-line-note { display: block; margin-top: .3rem; color: var(--muted); font-size: .85rem; line-height: 1.5; }
+.quote-line > span:first-child { min-width: 0; overflow-wrap: anywhere; }
 @media print { .viewer-intro, .viewer-input, .builder-header, builtbymatthew-footer { display: none !important; } .viewer-main { padding: 0; } }
