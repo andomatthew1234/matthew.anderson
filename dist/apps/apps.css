@@ -45,9 +45,9 @@
 .app-connection__icon svg { width: 77%; height: 77%; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .app-connection__icon--web { border: 1px solid var(--app-line); background: #f9f6ef; }
 .app-connection__icon--app { color: var(--paper); background: var(--app-accent); }
-.app-connection__icon--app svg { stroke-width: 7; }
+.app-connection__icon--app img { display: block; width: 64%; height: 64%; }
 .app-connection__chain { align-self: center; display: flex; align-items: center; padding-bottom: 3rem; color: var(--app-accent); }
-.app-connection__chain svg { width: 2.4rem; flex-shrink: 0; margin-inline: .6rem; overflow: visible; stroke: currentColor; stroke-width: 3; stroke-linecap: round; transform: rotate(-8deg); }
+.app-connection__chain img { display: block; width: 2.5rem; height: 2.5rem; flex-shrink: 0; margin-inline: .6rem; }
 .app-connection__chain i { flex: 1; height: 1px; background: var(--app-line); }
 .app-connection__caption { margin: 3.5rem auto 2rem; text-align: center; font-size: clamp(1.8rem,3vw,3.1rem); line-height: 1.15 !important; letter-spacing: -.035em; }
 .app-connection__details { display: flex; justify-content: center; flex-wrap: wrap; gap: .6rem 1.2rem; color: #655e55; font-size: .875rem; }
@@ -64,6 +64,7 @@
 .app-gallery__buttons button:hover { color: var(--paper); background: var(--ink); }
 .app-gallery__rail { display: flex; gap: clamp(1.25rem,4vw,4.5rem); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding: 3rem max(1.25rem, calc((100% - var(--phone-width)) / 2)) 2rem; scrollbar-width: none; perspective: 1600px; }
 .app-gallery__rail::-webkit-scrollbar { display: none; }
+.app-gallery__rail.is-auto-scrolling { scroll-snap-type: none; }
 .app-slide { flex: 0 0 var(--phone-width); min-width: 0; margin: 0; scroll-snap-align: center; }
 .app-slide .app-phone { transform: rotateX(7deg) rotateY(-6deg) rotateZ(3deg) scale(.88); transform-origin: 50% 70%; transition: transform 800ms var(--ease-out); }
 .app-slide[data-side="left"] .app-phone { transform: rotateX(7deg) rotateY(6deg) rotateZ(-3deg) scale(.88); }
@@ -72,6 +73,13 @@
 .app-slide figcaption { margin: 2rem 0 0; text-align: center; font-size: clamp(1.35rem,2.1vw,1.9rem); letter-spacing: -.025em; color: #655e55; }
 .app-slide.is-active figcaption { color: var(--ink); }
 .app-concept-note { margin: 2rem 0 0; color: #655e55; font-size: .875rem; text-align: center; }
+.app-gallery__explore { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-top: 1.25rem; }
+.app-gallery__explore[hidden] { display: none; }
+.app-gallery__explore p { margin: 0; text-align: center; font-size: 1rem; }
+.app-gallery__explore p span { display: block; margin-top: .35rem; color: #655e55; font-size: .875rem; }
+.app-gallery__explore button { display: grid; place-items: center; flex: 0 0 3rem; width: 3rem; height: 3rem; padding: .75rem; border: 1px solid var(--app-line); border-radius: 50%; color: var(--ink); background: transparent; cursor: pointer; transition: background 200ms, color 200ms; }
+.app-gallery__explore button:hover { color: var(--paper); background: var(--ink); }
+.app-gallery__explore svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .app-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 .app-closing__content { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,.8fr); align-items: end; gap: 3rem; }
@@ -90,7 +98,7 @@
   .app-phone img { border-radius: 1.6rem; }
   .app-sync { gap: 3rem; }
   .app-connection__diagram { grid-template-columns: 1fr .6fr 1fr; }
-  .app-connection__chain svg { width: 1.7rem; margin-inline: .4rem; }
+  .app-connection__chain img { width: 1.75rem; height: 1.75rem; margin-inline: .4rem; }
   .app-possibilities__heading { grid-template-columns: 1fr; gap: 2rem; }
   .app-possibilities__heading > p { max-width: 30rem; }
 }
@@ -122,6 +130,7 @@
   .app-button { padding-inline: 1rem; }
   .app-closing .app-button { flex: 1 0 100%; }
   .app-gallery__buttons button { padding-inline: .5rem; min-width: 3rem; }
+  .app-gallery__explore { gap: 1rem; }
   .app-connection__end { font-size: .875rem; }
 }
 @media (prefers-reduced-motion: reduce) {

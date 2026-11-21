@@ -35,7 +35,9 @@
   const announcement = gallery.querySelector('[data-gallery-announcement]');
   let active = count;
   let centers = [];
-  let timer;
+  let autoFrame;
+  let lastTime;
+  let autoLeft = 0;
   let scrollFrame;
   let settleTimer;
   let measuring = false;
@@ -44,7 +46,12 @@
   let hovering = false;
   let userPaused = motion.matches;
 
-  const stop = () => { clearTimeout(timer); timer = undefined; };
+  const stop = () => {
+    cancelAnimationFrame(autoFrame);
+    autoFrame = undefined;
+    lastTime = undefined;
+    rail.classList.remove('is-auto-scrolling');
+  };
   const updatePause = () => {
     pause.textContent = userPaused ? 'Play' : 'Pause';
     pause.setAttribute('aria-label', userPaused ? 'Start automatic gallery movement' : 'Pause automatic gallery movement');
@@ -88,15 +95,36 @@
     rail.scrollTo({ left: centers[active] - rail.clientWidth / 2, behavior: 'instant' });
     requestAnimationFrame(() => requestAnimationFrame(() => rail.classList.remove('is-recentering')));
   };
+  const glide = timestamp => {
+    if (lastTime !== undefined && !measuring) {
+      // Keep a fractional position so movement stays even at high refresh rates.
+      autoLeft += Math.min(timestamp - lastTime, 50) * 24 / 1000;
+      const loopWidth = centers[count * 2] - centers[count];
+      if (autoLeft >= centers[count * 2] - rail.clientWidth / 2) {
+        autoLeft -= loopWidth;
+        rail.classList.add('is-recentering');
+        select(count + active % count);
+        requestAnimationFrame(() => requestAnimationFrame(() => rail.classList.remove('is-recentering')));
+      }
+      rail.scrollLeft = autoLeft;
+    } else {
+      autoLeft = rail.scrollLeft;
+    }
+    lastTime = timestamp;
+    autoFrame = requestAnimationFrame(glide);
+  };
   const schedule = () => {
     stop();
     if (!inView || hovering || userPaused || document.hidden) return;
-    timer = setTimeout(() => { go(active + 1); schedule(); }, 4800);
+    autoLeft = rail.scrollLeft;
+    rail.classList.add('is-auto-scrolling');
+    autoFrame = requestAnimationFrame(glide);
   };
   const pauseForInteraction = () => { userPaused = true; stop(); updatePause(); };
   gallery.querySelector('[data-carousel-controls]').hidden = false;
-  gallery.querySelector('[data-gallery-previous]').addEventListener('click', () => { pauseForInteraction(); go(active - 1, true); });
-  gallery.querySelector('[data-gallery-next]').addEventListener('click', () => { pauseForInteraction(); go(active + 1, true); });
+  gallery.querySelector('[data-carousel-cue]').hidden = false;
+  gallery.querySelectorAll('[data-gallery-previous]').forEach(button => button.addEventListener('click', () => { pauseForInteraction(); go(active - 1, true); }));
+  gallery.querySelectorAll('[data-gallery-next]').forEach(button => button.addEventListener('click', () => { pauseForInteraction(); go(active + 1, true); }));
   pause.addEventListener('click', () => { userPaused = !userPaused; updatePause(); schedule(); });
   rail.addEventListener('keydown', event => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
