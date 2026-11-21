@@ -132,17 +132,25 @@ async function assertWebsites(root, width) {
     }),
     closing: document.querySelector(".offering-why__closing")?.textContent.replace(/\s+/g, " ").trim(),
     projects: [...document.querySelectorAll(".project-index__item strong")].map((node) => node.textContent.trim()),
+    nextHeading: document.querySelector("#offering-next-title")?.textContent.replace(/\s+/g, " ").trim(),
+    nextCopy: document.querySelector(".offering-next__primary > p:last-of-type")?.textContent.replace(/\s+/g, " ").trim(),
+    customHeading: document.querySelector(".offering-next__secondary h3")?.textContent.trim(),
+    customCopy: document.querySelector(".offering-next__secondary > p:last-of-type")?.textContent.replace(/\s+/g, " ").trim(),
+    nextActions: [...document.querySelectorAll(".offering-next .offering-button")].map((link) => [link.textContent.trim(), link.getAttribute("href")]),
     previewPosition: getComputedStyle(document.querySelector(".project-index__preview")).position,
     trigger: Boolean(window.ScrollTrigger),
   }));
   assert(offering.title === "Websites, made properly.", `${root.pathname} ${width}: portfolio title is incorrect`);
-  assert(JSON.stringify(offering.sections) === JSON.stringify(["offering-hero", "offering-why", "offering-portfolio"]), `${root.pathname} ${width}: websites page is not limited to the three requested sections`);
+  assert(JSON.stringify(offering.sections) === JSON.stringify(["offering-hero", "offering-why", "offering-portfolio", "offering-next"]), `${root.pathname} ${width}: websites page sections are incorrect`);
   assert(offering.pageHeadings === 1 && offering.hero === "Websites made for more than looking good.", `${root.pathname} ${width}: introduction heading is incorrect`);
   assert(offering.intro === "Your website should feel unmistakably like you. Its design, personality, and functionality shape every part of the user experience—and how people feel while using it. That is what transforms a functional website into something thoughtful, memorable, and beautifully made.", `${root.pathname} ${width}: introduction copy is incorrect`);
   assert(JSON.stringify(offering.actions) === JSON.stringify([["Build your site", "../build-your-site/"], ["Learn more", "#why"], ["See how our websites are designed", "./what-makes-a-good-site/"]]), `${root.pathname} ${width}: introduction actions are incorrect`);
   assert(offering.cards.length === 4 && offering.cards.every((card) => Math.abs(card.width - card.height) <= 1 && card.scrollHeight <= card.height + 1 && card.facesFit), `${root.pathname} ${width}: why cards are not square or clip internally`);
   assert(offering.closing === "The goal is not simply to put something online. It is to create something that feels right for you—and works properly for everyone who visits it.", `${root.pathname} ${width}: why-section closing line is incorrect`);
   assert(JSON.stringify(offering.projects) === JSON.stringify(["Doxa Treasury", "Chromecraft Browser Website", "Sydney Bush Dances", "King Royalty Eggs"]), `${root.pathname} ${width}: project index order is incorrect`);
+  assert(offering.nextHeading === "Let’s make it happen." && offering.nextCopy === "Build your site and discuss the next steps with us.", `${root.pathname} ${width}: primary closing call to action is incorrect`);
+  assert(offering.customHeading === "Want something else?" && offering.customCopy === "Learn more about custom websites for unique ideas and enterprises.", `${root.pathname} ${width}: custom-work closing copy is incorrect`);
+  assert(JSON.stringify(offering.nextActions) === JSON.stringify([["Build your site", "../build-your-site/"], ["Email me", "mailto:matthew@andomail.com"]]), `${root.pathname} ${width}: closing actions are incorrect`);
   assert(!offering.trigger, `${root.pathname} ${width}: legacy ScrollTrigger remains on project index page`);
   if (width <= 900) assert(offering.previewPosition === "relative", `${root.pathname} ${width}: mobile project preview uses the wrong flow position`);
   await page.locator(".why-card").first().click();
