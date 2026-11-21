@@ -1,0 +1,714 @@
+.websites-page {
+  --anatomy-accent: #7e2724;
+  --anatomy-line: rgba(24, 24, 21, 0.28);
+  --anatomy-soft: #e9e3d8;
+}
+
+.websites-page .site-main {
+  padding-bottom: 0;
+}
+
+.anatomy-kicker {
+  margin: 0;
+  font-size: clamp(0.72rem, 0.78vw, 0.84rem);
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.anatomy-hero {
+  display: grid;
+  min-height: calc(100svh - clamp(4.75rem, 8vw, 6.75rem));
+  grid-template-columns: minmax(0, 0.86fr) minmax(28rem, 1.14fr);
+  align-items: center;
+  gap: clamp(3rem, 7vw, 8.5rem);
+  padding-block: clamp(5rem, 10vh, 8.5rem);
+}
+
+.anatomy-hero__copy {
+  position: relative;
+  z-index: 2;
+}
+
+.anatomy-hero h1 {
+  max-width: 8.7ch;
+  margin: clamp(1.4rem, 3vw, 2.7rem) 0 0;
+  font-size: clamp(4rem, 7.3vw, 8.5rem);
+  font-weight: 400;
+  letter-spacing: -0.065em;
+  line-height: 0.84;
+}
+
+.anatomy-hero h1 em,
+.anatomy-cta h2 em {
+  font-weight: 400;
+}
+
+.anatomy-hero__intro {
+  max-width: 35rem;
+  margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
+  font-size: clamp(1.05rem, 1.35vw, 1.3rem);
+  line-height: 1.48;
+}
+
+.anatomy-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.7rem;
+  margin-top: clamp(2rem, 4vw, 3.5rem);
+}
+
+.anatomy-button,
+.anatomy-text-link {
+  min-height: 3.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 0.8rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.anatomy-button {
+  min-width: 12rem;
+  padding: 0.9rem 1.3rem;
+  border: 1px solid var(--ink);
+  transition: background 300ms var(--ease-out), color 300ms var(--ease-out), transform 300ms var(--ease-out);
+}
+
+.anatomy-button--dark {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.anatomy-button:hover,
+.anatomy-button:focus-visible {
+  background: var(--anatomy-accent);
+  border-color: var(--anatomy-accent);
+  color: #fffaf1;
+  transform: translateY(-2px);
+}
+
+.anatomy-text-link {
+  position: relative;
+  padding-inline: 0.1rem;
+}
+
+.anatomy-text-link::after {
+  position: absolute;
+  right: 0;
+  bottom: 0.55rem;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  content: "";
+  transform: scaleX(0.28);
+  transform-origin: left;
+  transition: transform 300ms var(--ease-out);
+}
+
+.anatomy-text-link:hover::after,
+.anatomy-text-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.anatomy-hero__canvas {
+  position: relative;
+  min-width: 0;
+  padding: 5rem 0 4rem 2.5rem;
+}
+
+.anatomy-browser {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(24, 24, 21, 0.7);
+  border-radius: 0.75rem;
+  background: #f9f6ef;
+}
+
+.anatomy-browser::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0.7rem -0.7rem -0.7rem 0.7rem;
+  border: 1px solid rgba(24, 24, 21, 0.28);
+  border-radius: inherit;
+  content: "";
+}
+
+.anatomy-browser__bar {
+  display: flex;
+  height: 2.4rem;
+  align-items: center;
+  gap: 0.35rem;
+  padding-inline: 0.85rem;
+  border-bottom: 1px solid var(--anatomy-line);
+}
+
+.anatomy-browser__bar > span {
+  width: 0.43rem;
+  height: 0.43rem;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+.anatomy-browser__bar > i {
+  width: 38%;
+  height: 0.36rem;
+  margin-inline: auto;
+  border-radius: 1rem;
+  background: rgba(24, 24, 21, 0.11);
+}
+
+.anatomy-browser--hero {
+  aspect-ratio: 1.2;
+  transform: rotate(1.2deg);
+  box-shadow: 0 2rem 5rem rgba(24, 24, 21, 0.07);
+}
+
+.anatomy-hero__grid {
+  position: absolute;
+  inset: 2.4rem 0 0;
+  background-image: linear-gradient(rgba(24, 24, 21, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(24, 24, 21, 0.035) 1px, transparent 1px);
+  background-size: 11.111% 12.5%;
+}
+
+.anatomy-hero__grid > span {
+  position: absolute;
+  display: block;
+}
+
+.anatomy-hero__navline {
+  top: 8%;
+  left: 7%;
+  width: 42%;
+  height: 2px;
+  background: var(--ink);
+}
+
+.anatomy-hero__headline {
+  top: 25%;
+  left: 8%;
+  width: 52%;
+  height: 8%;
+  background: var(--ink);
+}
+
+.anatomy-hero__headline--short {
+  top: 36%;
+  width: 38%;
+}
+
+.anatomy-hero__copyline {
+  top: 56%;
+  left: 8%;
+  width: 39%;
+  height: 1px;
+  background: var(--ink);
+}
+
+.anatomy-hero__copyline--short {
+  top: 61%;
+  width: 27%;
+}
+
+.anatomy-hero__button {
+  bottom: 16%;
+  left: 8%;
+  width: 18%;
+  height: 8%;
+  border: 1px solid var(--ink);
+}
+
+.anatomy-hero__image {
+  right: 7%;
+  bottom: 9%;
+  width: 39%;
+  height: 62%;
+  border-radius: 50% 50% 0 0;
+  background: var(--anatomy-accent);
+  opacity: 0.9;
+}
+
+.anatomy-note {
+  position: absolute;
+  padding: 0.5rem 0.72rem;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  font-size: 0.75rem;
+  font-style: italic;
+  box-shadow: 0.4rem 0.4rem 0 var(--paper), 0.4rem 0.4rem 0 1px var(--anatomy-line);
+}
+
+.anatomy-note--idea { top: 1.3rem; left: 0; transform: rotate(-4deg); }
+.anatomy-note--purpose { top: 13%; right: -0.5rem; transform: rotate(3deg); }
+.anatomy-note--people { bottom: 0.5rem; left: 25%; transform: rotate(-2deg); }
+
+.anatomy-section-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.7fr);
+  gap: 2rem 5rem;
+  margin-bottom: clamp(4rem, 9vw, 8rem);
+}
+
+.anatomy-section-heading .anatomy-kicker {
+  grid-column: 1 / -1;
+}
+
+.anatomy-section-heading h2 {
+  max-width: 11ch;
+  margin: 0;
+  font-size: clamp(3.5rem, 7vw, 7.5rem);
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  line-height: 0.88;
+}
+
+.anatomy-section-heading > p:last-child {
+  max-width: 32rem;
+  align-self: end;
+  margin: 0;
+  font-size: clamp(1.05rem, 1.25vw, 1.25rem);
+  line-height: 1.5;
+}
+
+.anatomy-layers,
+.anatomy-assembly,
+.anatomy-outcomes,
+.anatomy-cta {
+  border-top: 1px solid var(--anatomy-line);
+  padding-block: clamp(6rem, 12vw, 11rem);
+}
+
+.anatomy-layers__layout {
+  display: grid;
+  grid-template-columns: minmax(25rem, 0.92fr) minmax(28rem, 1.08fr);
+  gap: clamp(4rem, 9vw, 10rem);
+}
+
+.anatomy-layers__visual {
+  position: sticky;
+  top: 12vh;
+  align-self: start;
+}
+
+.anatomy-browser--layers {
+  aspect-ratio: 1.18;
+  background: var(--anatomy-soft);
+  perspective: 1000px;
+}
+
+.anatomy-layer {
+  position: absolute;
+  top: 19%;
+  right: 9%;
+  bottom: 9%;
+  left: 9%;
+  border: 1px solid rgba(24, 24, 21, 0.56);
+  background: rgba(249, 246, 239, 0.88);
+  opacity: 0.15;
+  transform: translateY(calc(var(--depth) * 0.55rem)) scale(calc(1 - var(--depth) * 0.012));
+  transition: opacity 350ms var(--ease-out), transform 550ms var(--ease-out), background 350ms ease;
+}
+
+.anatomy-layer--technology { --depth: 0; }
+.anatomy-layer--interaction { --depth: 1; inset: 22% 12% 12%; }
+.anatomy-layer--content { --depth: 2; inset: 25% 15% 15%; }
+.anatomy-layer--identity { --depth: 3; inset: 28% 18% 18%; }
+.anatomy-layer--structure { --depth: 4; inset: 31% 21% 21%; }
+.anatomy-layer--idea { --depth: 5; inset: 34% 24% 24%; }
+
+.anatomy-browser--layers[data-active-layer="technology"] .anatomy-layer--technology,
+.anatomy-browser--layers[data-active-layer="interaction"] .anatomy-layer--interaction,
+.anatomy-browser--layers[data-active-layer="content"] .anatomy-layer--content,
+.anatomy-browser--layers[data-active-layer="identity"] .anatomy-layer--identity,
+.anatomy-browser--layers[data-active-layer="structure"] .anatomy-layer--structure,
+.anatomy-browser--layers[data-active-layer="idea"] .anatomy-layer--idea {
+  z-index: 7;
+  background: var(--paper);
+  opacity: 1;
+  transform: translateY(-0.6rem) scale(1.025);
+  box-shadow: 0 1.25rem 2.5rem rgba(24, 24, 21, 0.1);
+}
+
+.anatomy-layer--idea { display: grid; place-items: center; }
+.anatomy-layer--idea span { font-size: clamp(2.5rem, 5vw, 5rem); font-style: italic; }
+.anatomy-layer--structure { display: grid; grid-template-columns: 0.55fr 1fr; grid-template-rows: 0.5fr 1fr; gap: 0.55rem; padding: 0.7rem; }
+.anatomy-layer--structure span { border: 1px solid var(--ink); }
+.anatomy-layer--structure span:first-child { grid-row: 1 / 3; }
+.anatomy-layer--identity { display: flex; align-items: center; justify-content: space-around; }
+.anatomy-layer--identity span { font-size: clamp(2rem, 4vw, 4.5rem); font-style: italic; }
+.anatomy-layer--identity i { width: 27%; aspect-ratio: 1; border-radius: 50%; background: var(--anatomy-accent); }
+.anatomy-layer--content { display: flex; flex-direction: column; justify-content: center; gap: 0.9rem; padding: 12%; }
+.anatomy-layer--content span { height: 2px; background: var(--ink); }
+.anatomy-layer--content span:nth-child(2) { width: 78%; }
+.anatomy-layer--content span:nth-child(3) { width: 52%; }
+.anatomy-layer--interaction { display: flex; align-items: center; justify-content: center; gap: 1.5rem; }
+.anatomy-layer--interaction span { width: 18%; aspect-ratio: 1; border: 1px solid var(--ink); border-radius: 50%; }
+.anatomy-layer--interaction span:last-child { background: var(--ink); }
+.anatomy-layer--technology { display: grid; place-items: center; }
+.anatomy-layer--technology span { font-family: monospace; font-size: clamp(2rem, 4vw, 4rem); }
+
+.anatomy-visual-caption {
+  min-height: 3em;
+  margin: 2rem 0 0;
+  font-size: clamp(1.1rem, 1.35vw, 1.3rem);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.anatomy-layer-list {
+  border-top: 1px solid var(--ink);
+}
+
+.anatomy-layer-control {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.65fr) minmax(0, 1fr);
+  gap: 2rem;
+  padding: clamp(1.7rem, 3vw, 2.7rem) 0;
+  border: 0;
+  border-bottom: 1px solid var(--anatomy-line);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: padding 350ms var(--ease-out), color 250ms ease;
+}
+
+.anatomy-layer-control:hover,
+.anatomy-layer-control:focus-visible,
+.anatomy-layer-control.is-active {
+  padding-left: 1.2rem;
+  color: var(--anatomy-accent);
+}
+
+.anatomy-layer-control:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+}
+
+.anatomy-layer-control__name {
+  font-size: clamp(1.6rem, 2.4vw, 2.35rem);
+  line-height: 1;
+}
+
+.anatomy-layer-control__copy {
+  max-width: 27rem;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.anatomy-section-heading--assembly h2 { max-width: 12ch; }
+
+.anatomy-assembly__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.45fr);
+  gap: clamp(3rem, 6vw, 7rem);
+  align-items: center;
+}
+
+.anatomy-assembly__browser {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1.45;
+  border: 1px solid var(--ink);
+  border-radius: 0.85rem;
+  background: #e7e0d3;
+}
+
+.anatomy-demo-nav {
+  position: absolute;
+  top: 2.4rem;
+  right: 0;
+  left: 0;
+  height: 12%;
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  padding-inline: 5%;
+  border-bottom: 1px solid rgba(24, 24, 21, 0.22);
+  font-size: clamp(0.68rem, 0.85vw, 0.88rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.anatomy-demo-nav b { margin-right: auto; font-weight: 400; font-size: 1.25em; text-transform: none; }
+
+.anatomy-demo-content {
+  position: absolute;
+  top: 29%;
+  left: 6%;
+  z-index: 2;
+  width: 48%;
+}
+
+.anatomy-demo-content p {
+  margin: 0 0 1rem;
+  font-size: clamp(0.58rem, 0.75vw, 0.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.anatomy-demo-content h3 {
+  margin: 0;
+  font-size: clamp(2.4rem, 5.5vw, 6rem);
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  line-height: 0.78;
+}
+
+.anatomy-demo-content h3 em { font-weight: 400; }
+.anatomy-demo-content > span { display: block; max-width: 22rem; margin-top: 1.6rem; font-size: clamp(0.74rem, 1vw, 1rem); line-height: 1.35; }
+.anatomy-demo-content > i { display: inline-block; margin-top: 1.6rem; padding-bottom: 0.25rem; border-bottom: 1px solid; font-size: clamp(0.66rem, 0.78vw, 0.8rem); font-style: normal; text-transform: uppercase; letter-spacing: 0.1em; }
+
+.anatomy-demo-image {
+  position: absolute;
+  right: 5%;
+  bottom: -13%;
+  width: 38%;
+  aspect-ratio: 0.82;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 1rem;
+  border-radius: 50% 50% 0 0;
+  background: var(--anatomy-accent);
+  color: #fffaf1;
+}
+
+.anatomy-demo-image::before,
+.anatomy-demo-image::after {
+  position: absolute;
+  border: 1px solid rgba(255, 250, 241, 0.8);
+  border-radius: 50%;
+  content: "";
+}
+
+.anatomy-demo-image::before { inset: 18% 15% 30%; }
+.anatomy-demo-image::after { inset: 35% 28% 16%; }
+.anatomy-demo-image span { font-size: clamp(0.55rem, 0.65vw, 0.68rem); letter-spacing: 0.08em; text-transform: uppercase; }
+
+.anatomy-hotspot {
+  position: absolute;
+  z-index: 5;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 250ms var(--ease-out), background 250ms ease, color 250ms ease;
+}
+
+.anatomy-hotspot i { width: 0.42rem; height: 0.42rem; border-radius: 50%; background: currentColor; }
+.anatomy-hotspot:hover,
+.anatomy-hotspot:focus-visible,
+.anatomy-hotspot.is-active { z-index: 6; background: var(--ink); color: var(--paper); transform: scale(1.12); }
+.anatomy-hotspot:focus-visible { outline: 2px solid var(--anatomy-accent); outline-offset: 3px; }
+.anatomy-hotspot--navigation { top: 13%; right: 19%; }
+.anatomy-hotspot--type { top: 46%; left: 43%; }
+.anatomy-hotspot--content { bottom: 17%; left: 12%; }
+.anatomy-hotspot--interaction { right: 7%; bottom: 18%; }
+
+.anatomy-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.anatomy-assembly__explanation {
+  min-height: 20rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-block: 1px solid var(--anatomy-line);
+  padding-block: 2.5rem;
+}
+
+.anatomy-assembly__label {
+  margin: 0 0 2rem;
+  color: var(--anatomy-accent);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.anatomy-assembly__explanation h3 {
+  margin: 0;
+  font-size: clamp(2rem, 3.6vw, 3.8rem);
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  line-height: 0.96;
+}
+
+.anatomy-assembly__explanation > p:nth-of-type(2) {
+  margin: 2rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.anatomy-assembly__key { display: flex; gap: 0.35rem; margin-top: 3rem; }
+.anatomy-assembly__key span { width: 2rem; height: 1px; background: var(--anatomy-line); }
+.anatomy-assembly__key span.is-active { background: var(--ink); }
+
+.websites-page .portfolio-section {
+  border-top: 1px solid var(--anatomy-line);
+}
+
+.anatomy-outcome-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.5rem, 3vw, 3.5rem);
+}
+
+.anatomy-outcome {
+  min-width: 0;
+  border-top: 1px solid var(--ink);
+  padding-top: 1.3rem;
+}
+
+.anatomy-outcome__art {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1;
+  margin-bottom: 2rem;
+  border: 1px solid var(--anatomy-line);
+  background: rgba(249, 246, 239, 0.5);
+}
+
+.anatomy-outcome > p { margin: 0 0 1.2rem; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.anatomy-outcome h3 { max-width: 12ch; margin: 0; font-size: clamp(2rem, 3.1vw, 3.45rem); font-weight: 400; letter-spacing: -0.045em; line-height: 0.94; }
+.anatomy-outcome > span { display: block; max-width: 26rem; margin-top: 1.5rem; font-size: 1rem; line-height: 1.46; }
+
+.anatomy-outcome__art > * { position: absolute; display: block; transition: transform 650ms var(--ease-out); }
+.anatomy-outcome--introduce .anatomy-outcome__art span:nth-child(1) { inset: 12% 12% auto; height: 2px; background: var(--ink); }
+.anatomy-outcome--introduce .anatomy-outcome__art span:nth-child(2) { top: 29%; left: 12%; width: 62%; height: 12%; background: var(--ink); }
+.anatomy-outcome--introduce .anatomy-outcome__art span:nth-child(3) { top: 45%; left: 12%; width: 42%; height: 12%; background: var(--ink); }
+.anatomy-outcome--introduce .anatomy-outcome__art i { right: 12%; bottom: 0; width: 36%; height: 52%; border-radius: 50% 50% 0 0; background: var(--anatomy-accent); }
+.anatomy-outcome--tool .anatomy-outcome__art span { border: 1px solid var(--ink); }
+.anatomy-outcome--tool .anatomy-outcome__art span:nth-child(1) { inset: 12% 12% auto; height: 18%; }
+.anatomy-outcome--tool .anatomy-outcome__art span:nth-child(2) { top: 35%; bottom: 12%; left: 12%; width: 28%; }
+.anatomy-outcome--tool .anatomy-outcome__art span:nth-child(3) { top: 35%; right: 12%; bottom: 12%; left: 45%; }
+.anatomy-outcome--tool .anatomy-outcome__art i { top: 18%; right: 18%; width: 0.85rem; height: 0.85rem; border-radius: 50%; background: var(--anatomy-accent); }
+.anatomy-outcome--grow .anatomy-outcome__art span { bottom: 12%; width: 16%; background: var(--ink); }
+.anatomy-outcome--grow .anatomy-outcome__art span:nth-child(1) { left: 15%; height: 26%; }
+.anatomy-outcome--grow .anatomy-outcome__art span:nth-child(2) { left: 42%; height: 48%; }
+.anatomy-outcome--grow .anatomy-outcome__art span:nth-child(3) { right: 15%; height: 72%; }
+.anatomy-outcome--grow .anatomy-outcome__art i { top: 12%; right: 12%; width: 1rem; height: 1rem; border-radius: 50%; background: var(--anatomy-accent); }
+.anatomy-outcome:hover .anatomy-outcome__art span:nth-child(2) { transform: translateY(-0.8rem); }
+.anatomy-outcome:hover .anatomy-outcome__art i { transform: rotate(6deg) scale(1.04); }
+
+.anatomy-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.anatomy-cta h2 {
+  max-width: 10ch;
+  margin: 2.5rem auto 0;
+  font-size: clamp(4rem, 8.5vw, 9.5rem);
+  font-weight: 400;
+  letter-spacing: -0.065em;
+  line-height: 0.83;
+}
+
+.anatomy-cta > p:nth-of-type(2) {
+  max-width: 40rem;
+  margin: 3rem auto 0;
+  font-size: clamp(1.05rem, 1.3vw, 1.3rem);
+  line-height: 1.5;
+}
+
+.anatomy-actions--centered { justify-content: center; }
+
+.anatomy-enhanced [data-anatomy-reveal] {
+  opacity: 0;
+  transform: translateY(2rem);
+  transition: opacity 800ms var(--ease-out), transform 800ms var(--ease-out);
+}
+
+.anatomy-enhanced [data-anatomy-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (max-width: 900px) {
+  .anatomy-hero {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 3.5rem;
+    padding-block: 5rem 6.5rem;
+  }
+
+  .anatomy-hero h1 { max-width: 10ch; font-size: clamp(4rem, 13vw, 7.25rem); }
+  .anatomy-hero__canvas { width: min(100%, 44rem); justify-self: center; padding: 3rem 1rem 3rem 2rem; }
+  .anatomy-section-heading { grid-template-columns: 1fr; gap: 2rem; }
+  .anatomy-section-heading h2 { max-width: 12ch; font-size: clamp(3.5rem, 11vw, 6.3rem); }
+  .anatomy-section-heading > p:last-child { align-self: auto; }
+  .anatomy-layers__layout { grid-template-columns: 1fr; gap: 4rem; }
+  .anatomy-layers__visual { position: relative; top: auto; width: min(100%, 42rem); }
+  .anatomy-layer-control { grid-template-columns: minmax(8rem, 0.55fr) minmax(0, 1fr); }
+  .anatomy-assembly__layout { grid-template-columns: 1fr; }
+  .anatomy-assembly__explanation { min-height: 0; }
+  .anatomy-outcome-grid { grid-template-columns: 1fr; gap: 5rem; }
+  .anatomy-outcome { display: grid; grid-template-columns: minmax(15rem, 0.85fr) minmax(0, 1fr); column-gap: 2.5rem; }
+  .anatomy-outcome__art { grid-row: 1 / 5; margin: 0; }
+  .anatomy-outcome > p { margin-top: 1rem; }
+}
+
+@media (max-width: 600px) {
+  .anatomy-hero { padding-block: 3.8rem 5.5rem; }
+  .anatomy-hero h1 { font-size: clamp(3.7rem, 18vw, 5.2rem); line-height: 0.87; }
+  .anatomy-hero__intro { font-size: 1rem; }
+  .anatomy-actions { align-items: stretch; flex-direction: column; gap: 0.75rem; }
+  .anatomy-button, .anatomy-text-link { width: 100%; }
+  .anatomy-hero__canvas { padding: 2.5rem 0.4rem 2.5rem 1rem; }
+  .anatomy-browser--hero { aspect-ratio: 1.05; }
+  .anatomy-note { font-size: 0.67rem; }
+  .anatomy-note--purpose { right: 0; }
+  .anatomy-section-heading { margin-bottom: 3.5rem; }
+  .anatomy-section-heading h2 { font-size: clamp(3.25rem, 16vw, 4.8rem); }
+  .anatomy-layers, .anatomy-assembly, .anatomy-outcomes, .anatomy-cta { padding-block: 5.25rem; }
+  .anatomy-layer-control { grid-template-columns: 1fr; gap: 0.85rem; }
+  .anatomy-layer-control:hover, .anatomy-layer-control:focus-visible, .anatomy-layer-control.is-active { padding-left: 0.5rem; }
+  .anatomy-browser--layers { aspect-ratio: 1; }
+  .anatomy-assembly__browser { aspect-ratio: 0.94; }
+  .anatomy-demo-nav { gap: 0.75rem; padding-inline: 4%; }
+  .anatomy-demo-content { top: 26%; width: 66%; }
+  .anatomy-demo-content h3 { font-size: clamp(2.4rem, 14vw, 4.3rem); }
+  .anatomy-demo-content > span { width: 75%; }
+  .anatomy-demo-image { right: -4%; width: 48%; }
+  .anatomy-hotspot--navigation { right: 12%; }
+  .anatomy-hotspot--type { top: 45%; left: 54%; }
+  .anatomy-outcome { display: block; }
+  .anatomy-outcome__art { margin-bottom: 2rem; }
+  .anatomy-cta h2 { font-size: clamp(3.8rem, 18vw, 5.8rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anatomy-enhanced [data-anatomy-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .anatomy-layer,
+  .anatomy-button,
+  .anatomy-text-link::after,
+  .anatomy-hotspot,
+  .anatomy-outcome__art > * {
+    transition: none;
+  }
+}

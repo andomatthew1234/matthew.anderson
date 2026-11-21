@@ -107,9 +107,21 @@ async function assertHomepage(root, width) {
 async function assertWebsites(root, width) {
   const { context, page } = await open(root, "websites/", width);
   await page.waitForSelector(".project-card");
+  await page.locator(".portfolio-section").scrollIntoViewIfNeeded();
+  await page.waitForFunction(
+    () => [...document.querySelectorAll(".project-card img")].every((image) => image.complete && image.naturalWidth > 0),
+    undefined,
+    { timeout: 5_000 },
+  );
   const gallery = await page.evaluate(() => ({
     title: document.querySelector("#portfolio-title")?.textContent.trim(),
-    sections: document.querySelectorAll("main > section").length,
+    sections: [...document.querySelectorAll("main > section")].map((section) => section.className),
+    pageHeadings: document.querySelectorAll("main h1").length,
+    layerControls: document.querySelectorAll(".anatomy-layer-control").length,
+    hotspots: document.querySelectorAll(".anatomy-hotspot").length,
+    outcomes: document.querySelectorAll(".anatomy-outcome").length,
+    cta: document.querySelector('.anatomy-cta a[href="../build-your-site/"]')?.textContent.trim(),
+    visualPosition: getComputedStyle(document.querySelector(".anatomy-layers__visual")).position,
     projects: [...document.querySelectorAll(".project-name")].map((node) => node.textContent.trim()),
     imagesLoaded: [...document.querySelectorAll(".project-card img")].every((image) => image.complete && image.naturalWidth > 0),
     overflow: getComputedStyle(document.querySelector(".portfolio-viewport")).overflowX,
@@ -119,9 +131,15 @@ async function assertWebsites(root, width) {
     trigger: Boolean(window.ScrollTrigger?.getById("portfolio-horizontal")),
   }));
   assert(gallery.title === "Don't take my word for it.", `${root.pathname} ${width}: websites title is incorrect`);
-  assert(gallery.sections === 1, `${root.pathname} ${width}: websites page contains unexpected sections`);
+  assert(JSON.stringify(gallery.sections) === JSON.stringify(["anatomy-hero", "anatomy-layers", "anatomy-assembly", "portfolio-section", "anatomy-outcomes", "anatomy-cta"]), `${root.pathname} ${width}: websites page sections are incorrect`);
+  assert(gallery.pageHeadings === 1 && gallery.layerControls === 6 && gallery.hotspots === 4 && gallery.outcomes === 3 && gallery.cta === "Build your site", `${root.pathname} ${width}: websites anatomy content is incomplete`);
+  assert(gallery.visualPosition === (width <= 900 ? "relative" : "sticky"), `${root.pathname} ${width}: anatomy visual uses the wrong responsive position`);
   assert(JSON.stringify(gallery.projects) === JSON.stringify(["Doxa Treasury", "Chromecraft Browser Website", "Sydney Bush Dances", "King Royalty Eggs"]), `${root.pathname} ${width}: websites projects are incorrect`);
   assert(gallery.imagesLoaded, `${root.pathname} ${width}: a websites project image failed to load`);
+  await page.locator('[data-part="typography"]').click();
+  assert((await page.locator("[data-assembly-title]").textContent()).trim() === "Give the project a voice.", `${root.pathname} ${width}: assembly hotspot did not update its explanation`);
+  await page.locator('[data-layer="technology"]').click();
+  assert(await page.locator('[data-layer="technology"]').getAttribute("aria-pressed") === "true", `${root.pathname} ${width}: anatomy layer controls did not update`);
   if (width <= 900) {
     assert(gallery.overflow === "auto" && gallery.snap.startsWith("x") && !gallery.trigger, `${root.pathname} ${width}: websites gallery is not touch-native`);
     assert(gallery.card < gallery.viewport * 0.92, `${root.pathname} ${width}: next website does not peek into view`);
